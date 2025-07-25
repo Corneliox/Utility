@@ -25,7 +25,7 @@ def validate_directory_pairs():
     print("-" * 30)
 
     # --- Step 2: Recursively Find and Validate Subdirectories ---
-    validation_issues = {} # Dictionary to store {directory: [list_of_missing_files]}
+    validation_issues = {} # Dictionary to store {directory: [list_of_error_messages]}
     valid_dirs = []      # List to store valid directory paths
     
     for dirpath, _, filenames in os.walk(root_dir):
@@ -35,11 +35,11 @@ def validate_directory_pairs():
             relative_path = os.path.relpath(dirpath, root_dir)
             print(f"Checking: {relative_path}...")
             
-            missing_files = check_pairs_in_subdirectory(dirpath)
-            if missing_files:
-                # If the list of missing files is not empty, the directory is invalid
-                validation_issues[relative_path] = missing_files
-                print(f"🔴 Invalid: Directory '{relative_path}' has {len(missing_files)} missing pair(s).")
+            error_messages = check_pairs_in_subdirectory(dirpath)
+            if error_messages:
+                # If the list of errors is not empty, the directory is invalid
+                validation_issues[relative_path] = error_messages
+                print(f"🔴 Invalid: Directory '{relative_path}' has issues.")
             else:
                 valid_dirs.append(relative_path)
                 print(f"✅ Valid: Directory '{relative_path}' is OK.")
@@ -50,19 +50,19 @@ def validate_directory_pairs():
 
 def check_pairs_in_subdirectory(subdir_path):
     """
-    Validates a single subdirectory.
+    Validates a single subdirectory based on strict pairing rules.
 
     Args:
         subdir_path (str): The full path to the subdirectory to check.
 
     Returns:
-        list: A list of image base names that are missing a text pair. 
+        list: A list of strings describing validation errors. 
               Returns an empty list if the directory is valid.
     """
     image_extensions = {'.png', '.jpg', '.jpeg', '.bmp', '.webp'}
     image_bases = set()
     text_file_names = set()
-    images_missing_pairs = []
+    error_messages = []
 
     try:
         for filename in os.listdir(subdir_path):
@@ -73,10 +73,24 @@ def check_pairs_in_subdirectory(subdir_path):
                 image_bases.add(base_name)
             elif ext_lower == '.txt':
                 text_file_names.add(base_name)
-    
-        if not image_bases:
-            return [] # No images to validate, so it's valid.
+        
+        # --- NEW VALIDATION LOGIC ---
+        
+        # Case 1: Only images, no text files at all.
+        if image_bases and not text_file_names:
+            error_messages.append("Contains image files but is missing all .txt files.")
+            return error_messages
 
+        # Case 2: Only text files, no images at all.
+        if text_file_names and not image_bases:
+            error_messages.append("Contains .txt files but is missing all image files.")
+            return error_messages
+
+        # Case 3: No images to validate (e.g., folder with only other file types)
+        if not image_bases:
+            return [] # Valid
+
+        # Case 4: Mismatched pairs (both types exist, but some images lack a caption)
         for img_base in image_bases:
             found_match = False
             for txt_name in text_file_names:
@@ -85,13 +99,13 @@ def check_pairs_in_subdirectory(subdir_path):
                     break
             
             if not found_match:
-                images_missing_pairs.append(img_base)
+                error_messages.append(f"  - Missing pair for image: {img_base}")
         
-        return images_missing_pairs
+        return error_messages
 
     except Exception as e:
         print(f"Error processing subdirectory '{subdir_path}': {e}")
-        return ["ERROR_READING_DIRECTORY"]
+        return [f"ERROR reading directory: {e}"]
 
 def generate_report_file(root_dir, validation_issues, valid_dirs):
     """
@@ -105,16 +119,16 @@ def generate_report_file(root_dir, validation_issues, valid_dirs):
     report_lines.append(f"Generated on: {timestamp}")
     report_lines.append(f"Root Directory: {os.path.normpath(root_dir)}")
     report_lines.append("\n" + "="*40)
-    report_lines.append("🔴 INVALID DIRECTORIES (Missing Pairs)")
+    report_lines.append("🔴 INVALID DIRECTORIES (Issues Found)")
     report_lines.append("="*40)
 
     if not validation_issues:
         report_lines.append("\n🎉 No invalid directories found! All pairs are valid.\n")
     else:
-        for directory, missing_files in sorted(validation_issues.items()):
+        for directory, error_list in sorted(validation_issues.items()):
             report_lines.append(f"\nDirectory: {os.path.normpath(directory)}")
-            for file_base in sorted(missing_files):
-                report_lines.append(f"  - Missing pair for: {file_base}")
+            for error in sorted(error_list):
+                report_lines.append(f"  - {error}")
     
     report_lines.append("\n" + "="*40)
     report_lines.append("✅ VALID DIRECTORIES")
@@ -138,7 +152,6 @@ def generate_report_file(root_dir, validation_issues, valid_dirs):
 
     if not save_path:
         print("\nSave cancelled by user. Report not saved.")
-        # Show report in a simple messagebox as a fallback
         messagebox.showinfo("Report Not Saved", "You cancelled saving the report file. The results are available in the console.")
         return
 
