@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive File Tree Browser</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Custom styles for a better look and feel */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #111827; /* bg-gray-900 */
+            color: #d1d5db; /* text-gray-300 */
+        }
+        /* Style for the tree view */
+        .tree ul {
+            padding-left: 1.5rem;
+            border-left: 1px solid #4b5563; /* border-gray-600 */
+        }
+        .tree li {
+            position: relative;
+            list-style: none;
+            padding: 0.25rem 0;
+        }
+        .tree .folder-label {
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: background-color 0.2s;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.375rem; /* rounded-md */
+        }
+        .tree .folder-label:hover {
+            background-color: #374151; /* bg-gray-700 */
+        }
+        .tree .file-label {
+             display: flex;
+             align-items: center;
+             gap: 0.5rem;
+             padding: 0.25rem 0.5rem;
+        }
+        .tree .icon {
+            width: 1.25rem; /* w-5 */
+            height: 1.25rem; /* h-5 */
+            flex-shrink: 0;
+        }
+        .tree .toggle-icon {
+            transition: transform 0.2s ease-in-out;
+        }
+        .tree .collapsed > .toggle-icon {
+            transform: rotate(-90deg);
+        }
+        .tree .collapsed + ul {
+            display: none;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen">
+
+    <div class="w-full max-w-4xl mx-auto p-4 sm:p-6 lg:p-8">
+        <div class="bg-gray-800 shadow-2xl rounded-xl">
+            <div class="p-6 border-b border-gray-700">
+                <h1 class="text-2xl font-bold text-white">File Tree Browser</h1>
+                <p class="mt-2 text-gray-400">Select a folder on your computer to view its file structure.</p>
+                
+                <!-- Hidden file input that accepts directories -->
+                <input type="file" id="folder-input" webkitdirectory directory multiple style="display: none;" />
+                
+                <!-- Button to trigger the file input -->
+                <button id="select-folder-btn" class="mt-4 inline-flex items-center px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 focus:ring-offset-gray-800 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" />
+                    </svg>
+                    Browse Folder
+                </button>
+            </div>
+            
+            <!-- Container where the file tree will be rendered -->
+            <div id="tree-container" class="p-6 h-96 overflow-y-auto tree">
+                <p id="placeholder" class="text-gray-500">Your folder structure will appear here...</p>
+            </div>
+        </div>
+        <footer class="text-center mt-4 text-gray-500 text-sm">
+            <p>All files are processed locally in your browser. Nothing is uploaded.</p>
+        </footer>
+    </div>
+
+    <script>
+        // --- DOM Elements ---
+        const folderInput = document.getElementById('folder-input');
+        const selectFolderBtn = document.getElementById('select-folder-btn');
+        const treeContainer = document.getElementById('tree-container');
+        const placeholder = document.getElementById('placeholder');
+
+        // --- SVG Icons ---
+        const folderIcon = `
+            <svg xmlns="http://www.w3.org/2000/svg" class="icon text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" />
+            </svg>`;
+        const fileIcon = `
+            <svg xmlns="http://www.w3.org/2000/svg" class="icon text-gray-300" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd" />
+            </svg>`;
+        const toggleIcon = `
+            <svg xmlns="http://www.w3.org/2000/svg" class="icon toggle-icon text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+            </svg>`;
+
+        // --- Event Listeners ---
+        selectFolderBtn.addEventListener('click', () => {
+            folderInput.click();
+        });
+
+        folderInput.addEventListener('change', handleFolderSelection);
+
+        // --- Core Functions ---
+
+        /**
+         * Handles the folder selection event.
+         * @param {Event} event - The change event from the file input.
+         */
+        function handleFolderSelection(event) {
+            const files = event.target.files;
+            if (files.length === 0) return;
+
+            // Hide placeholder text
+            placeholder.style.display = 'none';
+            
+            // Build the tree structure from the flat file list
+            const tree = buildTree(files);
+
+            // Render the tree structure into the DOM
+            const treeElement = createTreeElement(tree);
+            treeContainer.innerHTML = ''; // Clear previous tree
+            treeContainer.appendChild(treeElement);
+
+            // Add event listeners for toggling folders
+            addToggleListeners();
+        }
+
+        /**
+         * Builds a nested object representing the file tree from a flat FileList.
+         * @param {FileList} files - The list of files from the input.
+         * @returns {object} - A nested object representing the folder structure.
+         */
+        function buildTree(files) {
+            const filePaths = Array.from(files).map(file => file.webkitRelativePath);
+            const rootName = filePaths[0].split('/')[0];
+            const tree = { name: rootName, type: 'folder', children: {} };
+
+            for (const path of filePaths) {
+                const parts = path.split('/');
+                let currentNode = tree.children;
+                // Skip the root folder name which is already handled
+                for (let i = 1; i < parts.length; i++) {
+                    const part = parts[i];
+                    const isLastPart = i === parts.length - 1;
+
+                    if (!currentNode[part]) {
+                        currentNode[part] = {
+                            name: part,
+                            type: isLastPart && part.includes('.') ? 'file' : 'folder',
+                            children: isLastPart && part.includes('.') ? null : {}
+                        };
+                    }
+                    if (currentNode[part].type === 'folder') {
+                        currentNode = currentNode[part].children;
+                    }
+                }
+            }
+            return tree;
+        }
+
+        /**
+         * Recursively creates the HTML elements for the file tree.
+         * @param {object} node - The current node in the tree structure.
+         * @returns {HTMLUListElement|HTMLLIElement} - The HTML element for the node.
+         */
+        function createTreeElement(node) {
+            if (node.type === 'file') {
+                const li = document.createElement('li');
+                li.innerHTML = `<span class="file-label">${fileIcon} ${node.name}</span>`;
+                return li;
+            }
+
+            // It's a folder
+            const ul = document.createElement('ul');
+            if (node.name.includes('/')) { // Root node doesn't need a list item
+                 const li = document.createElement('li');
+                 li.innerHTML = `<span class="folder-label">${toggleIcon}${folderIcon} ${node.name}</span>`;
+                 ul.appendChild(li);
+            }
+
+            const childrenContainer = document.createElement('ul');
+            const childrenNodes = Object.values(node.children)
+                .sort((a, b) => {
+                    // Sort folders before files, then alphabetically
+                    if (a.type !== b.type) return a.type === 'folder' ? -1 : 1;
+                    return a.name.localeCompare(b.name);
+                });
+
+            for (const childNode of childrenNodes) {
+                if (childNode.type === 'folder') {
+                    const li = document.createElement('li');
+                    li.innerHTML = `<span class="folder-label collapsed">${toggleIcon}${folderIcon} ${childNode.name}</span>`;
+                    li.appendChild(createTreeElement(childNode));
+                    childrenContainer.appendChild(li);
+                } else {
+                    childrenContainer.appendChild(createTreeElement(childNode));
+                }
+            }
+            
+            if (node.name.includes('/')) {
+                ul.querySelector('li').appendChild(childrenContainer);
+                return ul;
+            } else {
+                // For the root, just return the container of children
+                const rootUl = document.createElement('ul');
+                rootUl.innerHTML = `<li class="list-none"><span class="folder-label">${folderIcon} ${node.name}</span></li>`;
+                rootUl.querySelector('li').appendChild(childrenContainer);
+                return rootUl;
+            }
+        }
+
+        /**
+         * Adds click event listeners to all folder labels to handle expand/collapse.
+         */
+        function addToggleListeners() {
+            treeContainer.querySelectorAll('.folder-label').forEach(label => {
+                // Only add toggle to folders that actually have children
+                if (label.nextElementSibling && label.nextElementSibling.tagName === 'UL') {
+                    label.addEventListener('click', (e) => {
+                        e.stopPropagation(); // Prevent event bubbling
+                        label.classList.toggle('collapsed');
+                    });
+                } else {
+                    // Remove toggle icon if folder is empty
+                    const toggle = label.querySelector('.toggle-icon');
+                    if(toggle) toggle.style.opacity = '0';
+                }
+            });
+        }
+    </script>
+
+</body>
+</html>
