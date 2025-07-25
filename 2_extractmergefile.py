@@ -7,7 +7,7 @@ def merge_dataset_files():
     """
     Scans a selected source directory recursively, finds all .png and .txt files,
     and copies them into a single selected destination directory. It also reports
-    on any files that were skipped during the process.
+    on any files that were skipped during the process, including the reason.
     """
     # --- Step 1: Get Source and Destination Folders from User ---
     
@@ -35,7 +35,7 @@ def merge_dataset_files():
     # --- Step 2: Scan and Copy Files ---
     
     copied_files_count = 0
-    skipped_files_details = [] # List to store details of skipped files
+    skipped_files_details = [] # List to store tuples of (path, reason) for skipped files
 
     try:
         # os.walk recursively goes through all directories and subdirectories
@@ -43,8 +43,8 @@ def merge_dataset_files():
             for filename in filenames:
                 source_path = os.path.join(dirpath, filename)
                 
-                # Check if the file is a .png or .txt file
-                if filename.lower().endswith(('.png', '.txt')):
+                # Check if the file is a .png or .txt file + .jpg
+                if filename.lower().endswith(('.jpg', '.png', '.txt')):
                     
                     dest_path = os.path.join(dest_dir, filename)
                     
@@ -54,7 +54,9 @@ def merge_dataset_files():
                 else:
                     # This file is not a .png or .txt, so we record it as skipped
                     relative_path = os.path.relpath(source_path, source_dir)
-                    skipped_files_details.append(relative_path)
+                    _, extension = os.path.splitext(filename)
+                    reason = f"Invalid extension ('{extension}')"
+                    skipped_files_details.append((relative_path, reason))
                     
     except Exception as e:
         print(f"\nAn error occurred: {e}")
@@ -74,17 +76,18 @@ def merge_dataset_files():
         f"Files skipped: {len(skipped_files_details)}"
     ]
 
-    # If any files were skipped, list them in the report
+    # If any files were skipped, list them in the report with the reason
     if skipped_files_details:
-        print("\n--- Skipped Files (not .png or .txt) ---")
+        print("\n--- Skipped Files ---")
         summary_lines.append("\n\nSkipped Files:")
         
         # Add skipped files to console output and the final message box
-        for i, file_path in enumerate(sorted(skipped_files_details)):
-            print(f"  - {file_path}")
+        for i, (file_path, reason) in enumerate(sorted(skipped_files_details)):
+            log_entry = f"  - {file_path} (Reason: {reason})"
+            print(log_entry)
             # Limit lines in the messagebox to avoid making it too big
             if i < 15: 
-                summary_lines.append(f"  - {file_path}")
+                summary_lines.append(log_entry)
         
         if len(skipped_files_details) > 15:
             summary_lines.append("  - ... (and more, see console for full list)")
