@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interactive File Tree Browser</title>
+    <title>File Tree Browser with Selection</title>
     <!-- Tailwind CSS for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Google Fonts: Inter -->
@@ -17,7 +17,6 @@
             background-color: #111827; /* bg-gray-900 */
             color: #d1d5db; /* text-gray-300 */
         }
-        /* Style for the tree view */
         .tree ul {
             padding-left: 1.5rem;
             border-left: 1px solid #4b5563; /* border-gray-600 */
@@ -27,23 +26,25 @@
             list-style: none;
             padding: 0.25rem 0;
         }
-        .tree .folder-label {
-            cursor: pointer;
+        .tree-item {
             display: flex;
             align-items: center;
             gap: 0.5rem;
-            transition: background-color 0.2s;
             padding: 0.25rem 0.5rem;
             border-radius: 0.375rem; /* rounded-md */
+            transition: background-color 0.2s;
         }
-        .tree .folder-label:hover {
-            background-color: #374151; /* bg-gray-700 */
+        .tree-item:hover {
+             background-color: #374151; /* bg-gray-700 */
         }
-        .tree .file-label {
-             display: flex;
-             align-items: center;
-             gap: 0.5rem;
-             padding: 0.25rem 0.5rem;
+        .tree-item.folder > .label {
+            cursor: pointer;
+        }
+        .tree-item .label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-grow: 1;
         }
         .tree .icon {
             width: 1.25rem; /* w-5 */
@@ -53,13 +54,18 @@
         .tree .toggle-icon {
             transition: transform 0.2s ease-in-out;
         }
-        .tree .collapsed > .toggle-icon {
+        .tree .collapsed > .label > .toggle-icon {
             transform: rotate(-90deg);
         }
         .tree .collapsed + ul {
             display: none;
         }
-        /* For the copy notification */
+        /* Custom checkbox style */
+        .tree-checkbox {
+            width: 1rem;
+            height: 1rem;
+            accent-color: #3b82f6; /* blue-500 */
+        }
         #copy-notification {
             transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
         }
@@ -71,25 +77,26 @@
         <div class="bg-gray-800 shadow-2xl rounded-xl">
             <div class="p-6 border-b border-gray-700">
                 <h1 class="text-2xl font-bold text-white">File Tree Browser</h1>
-                <p class="mt-2 text-gray-400">Select a folder to view its structure, then copy it as text.</p>
+                <p class="mt-2 text-gray-400">Select folders/files using checkboxes, then copy the structure as text.</p>
                 
-                <!-- Hidden file input that accepts directories -->
                 <input type="file" id="folder-input" webkitdirectory directory multiple style="display: none;" />
                 
-                <!-- Action Buttons -->
-                <div class="mt-4 flex items-center gap-4">
+                <div class="mt-4 flex flex-wrap items-center gap-4">
                     <button id="select-folder-btn" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 focus:ring-offset-gray-800 transition-colors">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" /></svg>
                         Browse Folder
                     </button>
                     <button id="copy-text-btn" class="hidden inline-flex items-center px-4 py-2 bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 focus:ring-offset-gray-800 transition-colors">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path d="M8 2a1 1 0 000 2h2a1 1 0 100-2H8z" /><path d="M3 5a2 2 0 012-2h6a2 2 0 012 2v12a2 2 0 01-2 2H5a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H6zm3 0a1 1 0 000 2h3a1 1 0 100-2H9zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H6zm3 0a1 1 0 100 2h3a1 1 0 100-2H9z" /></svg>
-                        Copy as Text
+                        Copy Selected as Text
                     </button>
+                    <div id="select-all-container" class="hidden ml-auto flex items-center gap-2 text-sm">
+                        <input type="checkbox" id="select-all-checkbox" class="tree-checkbox" checked>
+                        <label for="select-all-checkbox">Select All</label>
+                    </div>
                 </div>
             </div>
             
-            <!-- Container where the file tree will be rendered -->
             <div id="tree-container" class="p-6 h-96 overflow-y-auto tree">
                 <p id="placeholder" class="text-gray-500">Your folder structure will appear here...</p>
             </div>
@@ -99,7 +106,6 @@
         </footer>
     </div>
 
-    <!-- Copy to clipboard notification -->
     <div id="copy-notification" class="fixed bottom-5 right-5 bg-gray-900 text-white py-2 px-4 rounded-lg shadow-lg opacity-0 transform translate-y-3">
         Copied to clipboard!
     </div>
@@ -112,6 +118,8 @@
         const treeContainer = document.getElementById('tree-container');
         const placeholder = document.getElementById('placeholder');
         const copyNotification = document.getElementById('copy-notification');
+        const selectAllContainer = document.getElementById('select-all-container');
+        const selectAllCheckbox = document.getElementById('select-all-checkbox');
 
         // --- State ---
         let fileTreeData = null;
@@ -125,6 +133,7 @@
         selectFolderBtn.addEventListener('click', () => folderInput.click());
         folderInput.addEventListener('change', handleFolderSelection);
         copyTextBtn.addEventListener('click', handleCopyText);
+        selectAllCheckbox.addEventListener('change', handleSelectAll);
 
         // --- Core Functions ---
 
@@ -137,28 +146,32 @@
             const treeElement = createTreeElement(fileTreeData);
             treeContainer.innerHTML = '';
             treeContainer.appendChild(treeElement);
-            addToggleListeners();
+            addEventListeners();
             
-            // Show the copy button
             copyTextBtn.classList.remove('hidden');
+            selectAllContainer.classList.remove('hidden');
+            selectAllCheckbox.checked = true;
         }
 
         function buildTree(files) {
             const filePaths = Array.from(files).map(file => file.webkitRelativePath);
             const rootName = filePaths[0].split('/')[0];
-            const tree = { name: rootName, type: 'folder', children: {} };
+            const tree = { name: rootName, type: 'folder', children: {}, path: rootName };
 
             for (const path of filePaths) {
                 const parts = path.split('/');
                 let currentNode = tree.children;
+                let currentPath = rootName;
                 for (let i = 1; i < parts.length; i++) {
                     const part = parts[i];
+                    currentPath += '/' + part;
                     const isLastPart = i === parts.length - 1;
                     if (!currentNode[part]) {
                         currentNode[part] = {
                             name: part,
-                            type: isLastPart && part.includes('.') ? 'file' : 'folder',
-                            children: isLastPart && part.includes('.') ? null : {}
+                            type: isLastPart && !path.endsWith('/') ? 'file' : 'folder',
+                            children: isLastPart && !path.endsWith('/') ? null : {},
+                            path: currentPath
                         };
                     }
                     if (currentNode[part].type === 'folder') {
@@ -170,87 +183,113 @@
         }
 
         function createTreeElement(node) {
-            if (node.type === 'file') {
-                const li = document.createElement('li');
-                li.innerHTML = `<span class="file-label">${fileIcon} ${node.name}</span>`;
-                return li;
-            }
+            const li = document.createElement('li');
+            li.dataset.path = node.path;
 
-            const ul = document.createElement('ul');
-            if (node.name.includes('/')) {
-                 const li = document.createElement('li');
-                 li.innerHTML = `<span class="folder-label">${toggleIcon}${folderIcon} ${node.name}</span>`;
-                 ul.appendChild(li);
-            }
+            const itemDiv = document.createElement('div');
+            itemDiv.className = `tree-item ${node.type}`;
+            
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.className = 'tree-checkbox';
+            checkbox.checked = true;
+            checkbox.dataset.path = node.path;
+            
+            const labelSpan = document.createElement('span');
+            labelSpan.className = 'label';
 
-            const childrenContainer = document.createElement('ul');
-            const childrenNodes = Object.values(node.children)
-                .sort((a, b) => {
+            if (node.type === 'folder') {
+                const hasChildren = node.children && Object.keys(node.children).length > 0;
+                const toggle = hasChildren ? toggleIcon : `<span class="icon"></span>`;
+                labelSpan.innerHTML = `${toggle}${folderIcon} ${node.name}`;
+                li.classList.add('collapsed');
+
+                const childrenContainer = document.createElement('ul');
+                const childrenNodes = Object.values(node.children).sort((a, b) => {
                     if (a.type !== b.type) return a.type === 'folder' ? -1 : 1;
                     return a.name.localeCompare(b.name);
                 });
-
-            for (const childNode of childrenNodes) {
-                if (childNode.type === 'folder') {
-                    const li = document.createElement('li');
-                    li.innerHTML = `<span class="folder-label collapsed">${toggleIcon}${folderIcon} ${childNode.name}</span>`;
-                    li.appendChild(createTreeElement(childNode));
-                    childrenContainer.appendChild(li);
-                } else {
-                    childrenContainer.appendChild(createTreeElement(childNode));
-                }
-            }
-            
-            if (node.name.includes('/')) {
-                ul.querySelector('li').appendChild(childrenContainer);
-                return ul;
+                childrenNodes.forEach(child => childrenContainer.appendChild(createTreeElement(child)));
+                itemDiv.appendChild(checkbox);
+                itemDiv.appendChild(labelSpan);
+                li.appendChild(itemDiv);
+                li.appendChild(childrenContainer);
             } else {
-                const rootUl = document.createElement('ul');
-                rootUl.innerHTML = `<li class="list-none"><span class="folder-label">${folderIcon} ${node.name}</span></li>`;
-                rootUl.querySelector('li').appendChild(childrenContainer);
-                return rootUl;
+                labelSpan.innerHTML = `${fileIcon} ${node.name}`;
+                itemDiv.appendChild(checkbox);
+                itemDiv.appendChild(labelSpan);
+                li.appendChild(itemDiv);
             }
+            return li;
         }
 
-        function addToggleListeners() {
-            treeContainer.querySelectorAll('.folder-label').forEach(label => {
-                if (label.nextElementSibling && label.nextElementSibling.tagName === 'UL') {
-                    label.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        label.classList.toggle('collapsed');
-                    });
-                } else {
-                    const toggle = label.querySelector('.toggle-icon');
-                    if(toggle) toggle.style.opacity = '0';
-                }
+        function addEventListeners() {
+            treeContainer.querySelectorAll('.tree-item.folder > .label').forEach(label => {
+                label.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    label.parentElement.parentElement.classList.toggle('collapsed');
+                });
+            });
+            treeContainer.querySelectorAll('.tree-checkbox').forEach(checkbox => {
+                checkbox.addEventListener('change', handleCheckboxChange);
             });
         }
         
-        // --- NEW: Text Generation and Copy ---
+        function handleCheckboxChange(event) {
+            const checkbox = event.target;
+            const li = checkbox.closest('li');
+            const isChecked = checkbox.checked;
+
+            // Check/uncheck all children
+            li.querySelectorAll('.tree-checkbox').forEach(childCheckbox => {
+                childCheckbox.checked = isChecked;
+            });
+
+            // Update parent state
+            let current = li.parentElement.closest('li');
+            while (current) {
+                const parentCheckbox = current.querySelector(':scope > .tree-item > .tree-checkbox');
+                if (isChecked) {
+                    parentCheckbox.checked = true;
+                } else {
+                    const allSiblingsUnchecked = ![...current.querySelectorAll('.tree-checkbox')].slice(1).some(cb => cb.checked);
+                    if (allSiblingsUnchecked) {
+                        parentCheckbox.checked = false;
+                    }
+                }
+                current = current.parentElement.closest('li');
+            }
+            updateSelectAllState();
+        }
+        
+        function handleSelectAll() {
+            const isChecked = selectAllCheckbox.checked;
+            treeContainer.querySelectorAll('.tree-checkbox').forEach(cb => cb.checked = isChecked);
+        }
+
+        function updateSelectAllState() {
+            const allCheckboxes = treeContainer.querySelectorAll('.tree-checkbox');
+            const allChecked = [...allCheckboxes].every(cb => cb.checked);
+            selectAllCheckbox.checked = allChecked;
+        }
 
         function handleCopyText() {
             if (!fileTreeData) return;
-            const textTree = generateTextTree(fileTreeData);
-            
-            // Use a temporary textarea to copy text to clipboard
-            const textArea = document.createElement('textarea');
-            textArea.value = textTree;
-            document.body.appendChild(textArea);
-            textArea.select();
-            try {
-                // Use execCommand as a fallback for broader browser support
-                document.execCommand('copy');
-                showCopyNotification();
-            } catch (err) {
-                console.error('Failed to copy text: ', err);
-                alert('Failed to copy text. Please try again.');
+            const selectedPaths = [...treeContainer.querySelectorAll('.tree-checkbox:checked')].map(cb => cb.dataset.path);
+            if (selectedPaths.length === 0) {
+                showCopyNotification("Nothing selected to copy!", true);
+                return;
             }
-            document.body.removeChild(textArea);
+            const textTree = generateTextTree(fileTreeData, selectedPaths);
+            copyToClipboard(textTree);
         }
 
-        function generateTextTree(node) {
+        function generateTextTree(node, selectedPaths) {
+            if (!selectedPaths.includes(node.path)) return "";
             let result = `${node.name}/\n`;
+            
             const children = Object.values(node.children)
+                .filter(child => selectedPaths.includes(child.path))
                 .sort((a, b) => {
                     if (a.type !== b.type) return a.type === 'folder' ? -1 : 1;
                     return a.name.localeCompare(b.name);
@@ -258,18 +297,21 @@
             
             children.forEach((child, index) => {
                 const isLast = index === children.length - 1;
-                result += textTreeRecursive(child, "", isLast);
+                result += textTreeRecursive(child, "", isLast, selectedPaths);
             });
             return result;
         }
 
-        function textTreeRecursive(node, prefix, isLast) {
+        function textTreeRecursive(node, prefix, isLast, selectedPaths) {
+            if (!selectedPaths.includes(node.path)) return "";
+            
             const connector = isLast ? "└── " : "├── ";
             let result = `${prefix}${connector}${node.name}${node.type === 'folder' ? '/' : ''}\n`;
 
             if (node.type === 'folder' && node.children) {
                 const newPrefix = prefix + (isLast ? "    " : "│   ");
                 const children = Object.values(node.children)
+                    .filter(child => selectedPaths.includes(child.path))
                     .sort((a, b) => {
                         if (a.type !== b.type) return a.type === 'folder' ? -1 : 1;
                         return a.name.localeCompare(b.name);
@@ -277,13 +319,30 @@
                 
                 children.forEach((child, index) => {
                     const isChildLast = index === children.length - 1;
-                    result += textTreeRecursive(child, newPrefix, isChildLast);
+                    result += textTreeRecursive(child, newPrefix, isChildLast, selectedPaths);
                 });
             }
             return result;
         }
 
-        function showCopyNotification() {
+        function copyToClipboard(text) {
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            document.body.appendChild(textArea);
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                showCopyNotification("Copied to clipboard!");
+            } catch (err) {
+                console.error('Failed to copy text: ', err);
+                showCopyNotification("Failed to copy!", true);
+            }
+            document.body.removeChild(textArea);
+        }
+
+        function showCopyNotification(message, isError = false) {
+            copyNotification.textContent = message;
+            copyNotification.style.backgroundColor = isError ? '#991b1b' : '#1f2937'; // red-800 or gray-800
             copyNotification.classList.remove('opacity-0', 'translate-y-3');
             copyNotification.classList.add('opacity-100', 'translate-y-0');
             setTimeout(() => {
