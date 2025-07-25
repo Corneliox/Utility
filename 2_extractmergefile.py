@@ -1,170 +1,99 @@
 import os
+import shutil
 import tkinter as tk
 from tkinter import filedialog, messagebox
-from datetime import datetime
 
-def validate_directory_pairs():
+def merge_dataset_files():
     """
-    Main function to orchestrate the validation process. It browses for a root
-    directory, recursively finds all subdirectories containing dataset files,
-    validates them, and saves a detailed report to a .txt file.
+    Scans a selected source directory recursively, finds all .png and .txt files,
+    and copies them into a single selected destination directory. It also reports
+    on any files that were skipped during the process.
     """
-    # --- Step 1: Get Root Folder from User ---
+    # --- Step 1: Get Source and Destination Folders from User ---
+    
     root = tk.Tk()
     root.withdraw()
 
-    messagebox.showinfo("Directory Pair Validator", "Please select the root folder containing your dataset.")
-    root_dir = filedialog.askdirectory(title="Select Root Dataset Folder")
+    messagebox.showinfo("Dataset Merger", "First, please select the SOURCE folder that contains your dataset (e.g., 'Images/').")
+    source_dir = filedialog.askdirectory(title="Select the Source Dataset Folder")
     
-    if not root_dir:
-        print("No folder selected. Aborting.")
+    if not source_dir:
+        print("No source folder selected. Aborting.")
         return
 
-    print(f"Validating root folder: {root_dir}")
-    print("Searching for dataset files in all subdirectories...")
+    messagebox.showinfo("Dataset Merger", "Next, please select the DESTINATION folder where you want to save the merged files.")
+    dest_dir = filedialog.askdirectory(title="Select the Destination Folder for Merged Files")
+
+    if not dest_dir:
+        print("No destination folder selected. Aborting.")
+        return
+        
+    print(f"Source Folder: {source_dir}")
+    print(f"Destination Folder: {dest_dir}")
     print("-" * 30)
 
-    # --- Step 2: Recursively Find and Validate Subdirectories ---
-    validation_issues = {} # Dictionary to store {directory: [list_of_error_messages]}
-    valid_dirs = []      # List to store valid directory paths
+    # --- Step 2: Scan and Copy Files ---
     
-    for dirpath, _, filenames in os.walk(root_dir):
-        has_dataset_files = any(f.lower().endswith(('.png', '.jpg', '.jpeg', '.bmp', '.webp', '.txt')) for f in filenames)
-
-        if has_dataset_files:
-            relative_path = os.path.relpath(dirpath, root_dir)
-            print(f"Checking: {relative_path}...")
-            
-            error_messages = check_pairs_in_subdirectory(dirpath)
-            if error_messages:
-                # If the list of errors is not empty, the directory is invalid
-                validation_issues[relative_path] = error_messages
-                print(f"🔴 Invalid: Directory '{relative_path}' has issues.")
-            else:
-                valid_dirs.append(relative_path)
-                print(f"✅ Valid: Directory '{relative_path}' is OK.")
-
-    # --- Step 3: Generate the Report and Save to a File ---
-    print("\n--- Validation Scan Complete ---")
-    generate_report_file(root_dir, validation_issues, valid_dirs)
-
-def check_pairs_in_subdirectory(subdir_path):
-    """
-    Validates a single subdirectory based on strict pairing rules.
-
-    Args:
-        subdir_path (str): The full path to the subdirectory to check.
-
-    Returns:
-        list: A list of strings describing validation errors. 
-              Returns an empty list if the directory is valid.
-    """
-    image_extensions = {'.png', '.jpg', '.jpeg', '.bmp', '.webp'}
-    image_bases = set()
-    text_file_names = set()
-    error_messages = []
+    copied_files_count = 0
+    skipped_files_details = [] # List to store details of skipped files
 
     try:
-        for filename in os.listdir(subdir_path):
-            base_name, extension = os.path.splitext(filename)
-            ext_lower = extension.lower()
-
-            if ext_lower in image_extensions:
-                image_bases.add(base_name)
-            elif ext_lower == '.txt':
-                text_file_names.add(base_name)
-        
-        # --- NEW VALIDATION LOGIC ---
-        
-        # Case 1: Only images, no text files at all.
-        if image_bases and not text_file_names:
-            error_messages.append("Contains image files but is missing all .txt files.")
-            return error_messages
-
-        # Case 2: Only text files, no images at all.
-        if text_file_names and not image_bases:
-            error_messages.append("Contains .txt files but is missing all image files.")
-            return error_messages
-
-        # Case 3: No images to validate (e.g., folder with only other file types)
-        if not image_bases:
-            return [] # Valid
-
-        # Case 4: Mismatched pairs (both types exist, but some images lack a caption)
-        for img_base in image_bases:
-            found_match = False
-            for txt_name in text_file_names:
-                if img_base.lower() in txt_name.lower():
-                    found_match = True
-                    break
-            
-            if not found_match:
-                error_messages.append(f"  - Missing pair for image: {img_base}")
-        
-        return error_messages
-
+        # os.walk recursively goes through all directories and subdirectories
+        for dirpath, _, filenames in os.walk(source_dir):
+            for filename in filenames:
+                source_path = os.path.join(dirpath, filename)
+                
+                # Check if the file is a .png or .txt file
+                if filename.lower().endswith(('.png', '.txt')):
+                    
+                    dest_path = os.path.join(dest_dir, filename)
+                    
+                    print(f"Copying '{filename}'...")
+                    shutil.copy2(source_path, dest_path) # copy2 preserves metadata
+                    copied_files_count += 1
+                else:
+                    # This file is not a .png or .txt, so we record it as skipped
+                    relative_path = os.path.relpath(source_path, source_dir)
+                    skipped_files_details.append(relative_path)
+                    
     except Exception as e:
-        print(f"Error processing subdirectory '{subdir_path}': {e}")
-        return [f"ERROR reading directory: {e}"]
-
-def generate_report_file(root_dir, validation_issues, valid_dirs):
-    """
-    Builds the report string and saves it to a user-specified .txt file.
-    """
-    report_lines = []
-    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
-    # --- Build the Report String ---
-    report_lines.append("--- Dataset Validation Report ---")
-    report_lines.append(f"Generated on: {timestamp}")
-    report_lines.append(f"Root Directory: {os.path.normpath(root_dir)}")
-    report_lines.append("\n" + "="*40)
-    report_lines.append("🔴 INVALID DIRECTORIES (Issues Found)")
-    report_lines.append("="*40)
-
-    if not validation_issues:
-        report_lines.append("\n🎉 No invalid directories found! All pairs are valid.\n")
-    else:
-        for directory, error_list in sorted(validation_issues.items()):
-            report_lines.append(f"\nDirectory: {os.path.normpath(directory)}")
-            for error in sorted(error_list):
-                report_lines.append(f"  - {error}")
-    
-    report_lines.append("\n" + "="*40)
-    report_lines.append("✅ VALID DIRECTORIES")
-    report_lines.append("="*40 + "\n")
-
-    if not valid_dirs:
-        report_lines.append("No valid directories found.")
-    else:
-        for directory in sorted(valid_dirs):
-            report_lines.append(f"- {os.path.normpath(directory)}")
-
-    final_report = "\n".join(report_lines)
-
-    # --- Ask User Where to Save the File ---
-    save_path = filedialog.asksaveasfilename(
-        defaultextension=".txt",
-        filetypes=[("Text Files", "*.txt"), ("All Files", "*.*")],
-        title="Save Validation Report As",
-        initialfile="validation_report.txt"
-    )
-
-    if not save_path:
-        print("\nSave cancelled by user. Report not saved.")
-        messagebox.showinfo("Report Not Saved", "You cancelled saving the report file. The results are available in the console.")
+        print(f"\nAn error occurred: {e}")
+        messagebox.showerror("Error", f"An error occurred during the process: {e}")
         return
 
-    try:
-        with open(save_path, 'w', encoding='utf-8') as f:
-            f.write(final_report)
-        print(f"\nReport successfully saved to: {save_path}")
-        messagebox.showinfo("Success", f"Report successfully saved to:\n{save_path}")
-    except Exception as e:
-        print(f"\nError saving report file: {e}")
-        messagebox.showerror("Save Error", f"Could not save the report file.\nError: {e}")
+    # --- Step 3: Show Final Report ---
+    
+    print("-" * 30)
+    print("Process Complete!")
+    print(f"Total files copied: {copied_files_count}")
+    print(f"Total files skipped: {len(skipped_files_details)}")
+
+    summary_lines = [
+        f"Process Complete!\n",
+        f"Files copied: {copied_files_count}",
+        f"Files skipped: {len(skipped_files_details)}"
+    ]
+
+    # If any files were skipped, list them in the report
+    if skipped_files_details:
+        print("\n--- Skipped Files (not .png or .txt) ---")
+        summary_lines.append("\n\nSkipped Files:")
+        
+        # Add skipped files to console output and the final message box
+        for i, file_path in enumerate(sorted(skipped_files_details)):
+            print(f"  - {file_path}")
+            # Limit lines in the messagebox to avoid making it too big
+            if i < 15: 
+                summary_lines.append(f"  - {file_path}")
+        
+        if len(skipped_files_details) > 15:
+            summary_lines.append("  - ... (and more, see console for full list)")
+
+    final_summary = "\n".join(summary_lines)
+    messagebox.showinfo("Merge Complete", final_summary)
 
 
 # --- How to Run the Script ---
 if __name__ == "__main__":
-    validate_directory_pairs()
+    # This will start the process when you run the Python file.
+    merge_dataset_files()
