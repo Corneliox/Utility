@@ -3,6 +3,7 @@ import tkinter as tk
 from tkinter import filedialog, messagebox, scrolledtext
 import threading
 import queue
+import asyncio
 
 # --- Dependency Checker ---
 # This tool requires two external libraries: googletrans and langdetect.
@@ -99,6 +100,9 @@ class TranslatorApp:
 
     def translation_worker(self, folder_path):
         """The actual translation logic that runs in the background."""
+        # NEW: List of onomatopoeia words to exclude from translation (case-insensitive)
+        exclusion_list = {'byur', 'duuttt', 'gluduk', 'gong', 'thing', 'tok'}
+        
         total_files = 0
         changed_files = 0
 
@@ -119,10 +123,24 @@ class TranslatorApp:
                         for part in parts:
                             if not part: # Skip empty parts
                                 continue
+                            
+                            # NEW: Check if the part is in the exclusion list
+                            if part.lower() in exclusion_list:
+                                translated_parts.append(part)
+                                continue # Skip to the next part
+
                             try:
                                 # Detect language. If it's Indonesian, translate it.
                                 if detect(part) == 'id':
-                                    translated_text = self.translator.translate(part, src='id', dest='en').text
+                                    # FIX: Use asyncio to run the async translate function correctly
+                                    loop = asyncio.new_event_loop()
+                                    asyncio.set_event_loop(loop)
+                                    result = loop.run_until_complete(
+                                        self.translator.translate(part, src='id', dest='en')
+                                    )
+                                    translated_text = result.text
+                                    loop.close()
+
                                     translated_parts.append(translated_text)
                                     self.log_queue.put(f"  - In '{filename}', translated '{part}' -> '{translated_text}'")
                                     made_change = True
@@ -130,7 +148,7 @@ class TranslatorApp:
                                     # If not Indonesian, keep the original part
                                     translated_parts.append(part)
                             except LangDetectException:
-                                # If language detection fails (e.g., for short terms like 'Byur'), keep it.
+                                # If language detection fails (e.g., for short terms), keep it.
                                 translated_parts.append(part)
                             except Exception as e:
                                 # Handle potential translation API errors
