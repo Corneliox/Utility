@@ -103,6 +103,10 @@ class TranslatorApp:
         # NEW: List of onomatopoeia words to exclude from translation (case-insensitive)
         exclusion_list = {'byur', 'duuttt', 'gluduk', 'gong', 'thing', 'tok'}
         
+        # FIX: Create a single, persistent event loop for this thread
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+
         total_files = 0
         changed_files = 0
 
@@ -132,15 +136,12 @@ class TranslatorApp:
                             try:
                                 # Detect language. If it's Indonesian, translate it.
                                 if detect(part) == 'id':
-                                    # FIX: Use asyncio to run the async translate function correctly
-                                    loop = asyncio.new_event_loop()
-                                    asyncio.set_event_loop(loop)
+                                    # Use the existing loop for this thread
                                     result = loop.run_until_complete(
                                         self.translator.translate(part, src='id', dest='en')
                                     )
                                     translated_text = result.text
-                                    loop.close()
-
+                                    
                                     translated_parts.append(translated_text)
                                     self.log_queue.put(f"  - In '{filename}', translated '{part}' -> '{translated_text}'")
                                     made_change = True
@@ -166,6 +167,9 @@ class TranslatorApp:
                     except Exception as e:
                         self.log_queue.put(f"❌ ERROR: Could not process file '{filename}'. Reason: {e}")
         
+        # Close the loop at the end of the thread's work
+        loop.close()
+
         # --- Final Report ---
         summary = (
             f"\n--- Process Complete ---\n"
