@@ -1,188 +1,171 @@
 import os
+import shutil
 import tkinter as tk
 from tkinter import filedialog, messagebox, scrolledtext
 import threading
-import queue
-import asyncio
 
-# --- Dependency Checker ---
-# This tool requires two external libraries: googletrans and langdetect.
-# We will check if they are installed and guide the user if they are not.
-try:
-    from googletrans import Translator
-    from langdetect import detect, LangDetectException
-except ImportError:
-    messagebox.showerror(
-        "Dependencies Missing",
-        "This tool requires 'googletrans' and 'langdetect'.\n\nPlease install them by running this command in your terminal or command prompt:\n\npip install googletrans==4.0.0-rc1 langdetect"
-    )
-    exit()
+# ==============================================================================
+# === CONFIGURATION: Your custom translation dictionary ===
+# ==============================================================================
+# You can add or change any terms here. The script will find the Indonesian
+# word and replace it with the English word.
+translation_dict = {
+    "Putih": "white",
+    "Biru": "blue",
+    "Merah": "red",
+    "Kuning": "yellow",
+    "Hijau": "green",
+    "Hitam": "black",
+    "Timbre": "tone",
+    "Dekoratif": "decorative",
+    "Tebal": "bold",
+    "Cipratan": "splash",
+    "Ledakan": "explosion",
+    "Cahaya": "light",
+    "Gelap": "dark",
+    "Lembut": "soft",
+    "Tajam": "sharp",
+    "Suara": "sound",
+    "Byur": "splash",
+    "Brak": "crash",
+    "Dorr": "bang",
+    "Wussh": "whoosh",
+    "Gubrakk": "boom",
+    "Ledak": "blast",
+    "Getar": "vibration",
+    "Petir": "lightning",
+    "Pecah": "shatter",
+    "Tidak ada": "" # Special case to remove this term
+    # Add more terms as needed
+}
 
-# --- Main Application Class ---
-class TranslatorApp:
+# ==============================================================================
+# === UI APPLICATION CLASS ===
+# ==============================================================================
+class App:
     def __init__(self, root):
         self.root = root
-        self.root.title("Caption Translator (Bahasa -> English)")
+        self.root.title("Dictionary Caption Translator")
         self.root.geometry("700x500")
 
-        self.translator = Translator()
-        self.log_queue = queue.Queue()
-
-        # --- UI Elements ---
-        # Folder Selection Frame
-        frame_folder = tk.Frame(root, padx=10, pady=10)
-        frame_folder.pack(fill=tk.X)
-
-        tk.Label(frame_folder, text="Dataset Folder:").pack(side=tk.LEFT)
-        self.folder_path_var = tk.StringVar()
-        entry_folder = tk.Entry(frame_folder, textvariable=self.folder_path_var, state='readonly')
-        entry_folder.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=5)
-        btn_browse = tk.Button(frame_folder, text="Browse...", command=self.browse_folder)
-        btn_browse.pack(side=tk.LEFT)
-
-        # Log Display Frame
+        # --- UI Frames ---
+        frame_input = tk.Frame(root, padx=10, pady=5)
+        frame_input.pack(fill=tk.X)
+        frame_output = tk.Frame(root, padx=10, pady=5)
+        frame_output.pack(fill=tk.X)
         frame_log = tk.Frame(root, padx=10, pady=5)
         frame_log.pack(fill=tk.BOTH, expand=True)
-        
+
+        # --- Input Folder Selection ---
+        tk.Label(frame_input, text="Input Folder:").pack(side=tk.LEFT)
+        self.input_path_var = tk.StringVar()
+        entry_input = tk.Entry(frame_input, textvariable=self.input_path_var, state='readonly')
+        entry_input.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=5)
+        tk.Button(frame_input, text="Browse...", command=lambda: self.browse_folder(self.input_path_var)).pack(side=tk.LEFT)
+
+        # --- Output Folder Selection ---
+        tk.Label(frame_output, text="Output Folder:").pack(side=tk.LEFT)
+        self.output_path_var = tk.StringVar()
+        entry_output = tk.Entry(frame_output, textvariable=self.output_path_var, state='readonly')
+        entry_output.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=5)
+        tk.Button(frame_output, text="Browse...", command=lambda: self.browse_folder(self.output_path_var)).pack(side=tk.LEFT)
+
+        # --- Log Display ---
         tk.Label(frame_log, text="Progress Log:").pack(anchor='w')
         self.log_text = scrolledtext.ScrolledText(frame_log, wrap=tk.WORD, state='disabled')
         self.log_text.pack(fill=tk.BOTH, expand=True)
 
-        # Action Button
-        self.btn_start = tk.Button(root, text="Start Translation", command=self.start_translation, state='disabled', padx=10, pady=10)
+        # --- Action Button ---
+        self.btn_start = tk.Button(root, text="Start Processing", command=self.start_processing, state='disabled', padx=10, pady=10)
         self.btn_start.pack(pady=10)
-        
-        # Start the queue processor to update the log from the thread
-        self.process_log_queue()
 
-    def browse_folder(self):
-        """Opens a dialog to select a folder and enables the start button."""
+    def browse_folder(self, path_variable):
+        """Opens a dialog to select a folder."""
         folder_selected = filedialog.askdirectory()
         if folder_selected:
-            self.folder_path_var.set(folder_selected)
+            path_variable.set(folder_selected)
+            self.check_paths()
+
+    def check_paths(self):
+        """Enables the start button only if both paths are selected."""
+        if self.input_path_var.get() and self.output_path_var.get():
             self.btn_start.config(state='normal')
-            self.log_message(f"Selected folder: {folder_selected}")
 
     def log_message(self, message):
-        """Adds a message to the log text area in a thread-safe way."""
+        """Adds a message to the log text area."""
         self.log_text.config(state='normal')
         self.log_text.insert(tk.END, message + "\n")
         self.log_text.config(state='disabled')
-        self.log_text.see(tk.END) # Auto-scroll
+        self.log_text.see(tk.END)
 
-    def process_log_queue(self):
-        """Checks the queue for new log messages and displays them."""
-        try:
-            while True:
-                message = self.log_queue.get_nowait()
-                self.log_message(message)
-        except queue.Empty:
-            pass
-        self.root.after(100, self.process_log_queue)
+    def start_processing(self):
+        """Starts the file processing in a new thread."""
+        input_folder = self.input_path_var.get()
+        output_folder = self.output_path_var.get()
 
-    def start_translation(self):
-        """Starts the translation process in a new thread to avoid freezing the UI."""
-        folder_path = self.folder_path_var.get()
-        if not folder_path:
-            messagebox.showwarning("Warning", "Please select a folder first.")
+        if not input_folder or not output_folder:
+            messagebox.showwarning("Warning", "Please select both an input and an output folder.")
             return
+        
+        if input_folder == output_folder:
+            if not messagebox.askyesno("Warning", "Input and Output folders are the same. This will overwrite original files. Are you sure you want to continue?"):
+                return
 
         self.btn_start.config(state='disabled')
-        self.log_queue.put("\n--- Starting Translation Process ---")
+        self.log_message("\n--- Starting Translation Process ---")
         
-        # Run the heavy work in a separate thread
-        translation_thread = threading.Thread(
-            target=self.translation_worker, 
-            args=(folder_path,),
+        thread = threading.Thread(
+            target=self.processing_worker,
+            args=(input_folder, output_folder),
             daemon=True
         )
-        translation_thread.start()
+        thread.start()
 
-    def translation_worker(self, folder_path):
-        """The actual translation logic that runs in the background."""
-        # NEW: List of onomatopoeia words to exclude from translation (case-insensitive)
-        exclusion_list = {'byur', 'duuttt', 'gluduk', 'gong', 'thing', 'tok'}
+    def processing_worker(self, input_folder, output_folder):
+        """The core logic that runs in the background thread."""
+        modified_count = 0
         
-        # FIX: Create a single, persistent event loop for this thread
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
+        # Ensure the output directory exists
+        os.makedirs(output_folder, exist_ok=True)
 
-        total_files = 0
-        changed_files = 0
+        for filename in os.listdir(input_folder):
+            if filename.lower().endswith(".txt"):
+                input_path = os.path.join(input_folder, filename)
+                output_path = os.path.join(output_folder, filename)
+                
+                try:
+                    with open(input_path, 'r', encoding='utf-8') as f:
+                        content = f.read().strip()
 
-        for dirpath, _, filenames in os.walk(folder_path):
-            for filename in filenames:
-                if filename.lower().endswith('.txt'):
-                    total_files += 1
-                    file_path = os.path.join(dirpath, filename)
+                    # --- Translation Logic ---
+                    words = [w.strip() for w in content.split(',')]
+                    translated_words = []
+                    for word in words:
+                        # Replace the word if it's in the dictionary, otherwise keep it
+                        translated_words.append(translation_dict.get(word, word))
                     
-                    try:
-                        with open(file_path, 'r', encoding='utf-8') as f:
-                            original_content = f.read()
+                    # Filter out any empty strings that may result from the translation
+                    final_words = [w for w in translated_words if w]
+                    new_content = ', '.join(final_words)
+                    # --- End Translation Logic ---
 
-                        parts = [p.strip() for p in original_content.split(',')]
-                        translated_parts = []
-                        made_change = False
+                    with open(output_path, 'w', encoding='utf-8') as f:
+                        f.write(new_content)
+                    
+                    self.log_message(f"Processed: {filename}")
+                    modified_count += 1
+                
+                except Exception as e:
+                    self.log_message(f"❌ ERROR processing {filename}: {e}")
 
-                        for part in parts:
-                            if not part: # Skip empty parts
-                                continue
-                            
-                            # NEW: Check if the part is in the exclusion list
-                            if part.lower() in exclusion_list:
-                                translated_parts.append(part)
-                                continue # Skip to the next part
-
-                            try:
-                                # Detect language. If it's Indonesian, translate it.
-                                if detect(part) == 'id':
-                                    # Use the existing loop for this thread
-                                    result = loop.run_until_complete(
-                                        self.translator.translate(part, src='id', dest='en')
-                                    )
-                                    translated_text = result.text
-                                    
-                                    translated_parts.append(translated_text)
-                                    self.log_queue.put(f"  - In '{filename}', translated '{part}' -> '{translated_text}'")
-                                    made_change = True
-                                else:
-                                    # If not Indonesian, keep the original part
-                                    translated_parts.append(part)
-                            except LangDetectException:
-                                # If language detection fails (e.g., for short terms), keep it.
-                                translated_parts.append(part)
-                            except Exception as e:
-                                # Handle potential translation API errors
-                                self.log_queue.put(f"  - WARNING: Could not process '{part}'. Error: {e}")
-                                translated_parts.append(part)
-
-                        if made_change:
-                            changed_files += 1
-                            new_content = ", ".join(translated_parts)
-                            # Overwrite the original file with the new content
-                            with open(file_path, 'w', encoding='utf-8') as f:
-                                f.write(new_content)
-                            self.log_queue.put(f"✅ Updated '{filename}'")
-
-                    except Exception as e:
-                        self.log_queue.put(f"❌ ERROR: Could not process file '{filename}'. Reason: {e}")
-        
-        # Close the loop at the end of the thread's work
-        loop.close()
-
-        # --- Final Report ---
-        summary = (
-            f"\n--- Process Complete ---\n"
-            f"Scanned: {total_files} .txt files.\n"
-            f"Modified: {changed_files} files.\n"
-        )
-        self.log_queue.put(summary)
-        # Re-enable the button on the main thread
+        summary = f"\n--- Process Complete ---\n✅ Updated {modified_count} caption files."
+        self.log_message(summary)
         self.root.after(0, lambda: self.btn_start.config(state='normal'))
+        self.root.after(0, lambda: messagebox.showinfo("Success", f"Process complete!\nUpdated {modified_count} files in the output folder."))
 
 
 # --- How to Run the Script ---
 if __name__ == "__main__":
     main_window = tk.Tk()
-    app = TranslatorApp(main_window)
+    app = App(main_window)
     main_window.mainloop()
