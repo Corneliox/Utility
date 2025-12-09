@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Custom Style QR Generator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-green: #6c9e3e;
+            --primary-green-hover: #5a8532;
+            --bg-selected: rgba(108, 158, 62, 0.12);
+            --text-dark: #333;
+            --border-color: #ddd;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f4f6f8;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .main-container {
+            display: flex;
+            gap: 30px;
+            align-items: flex-start;
+        }
+
+        /* Left Side - Controls */
+        .modal-card {
+            background: white;
+            width: 450px;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        /* Right Side - Preview */
+        .preview-card {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-width: 360px;
+            min-height: 360px;
+        }
+        
+        #qr-preview-container {
+            width: 300px;
+            height: 300px;
+        }
+
+        .modal-header h2 {
+            margin: 0 0 25px 0;
+            color: var(--text-dark);
+            font-size: 22px;
+            font-weight: 700;
+        }
+
+        .form-group { margin-bottom: 22px; }
+
+        label {
+            display: flex;
+            align-items: center;
+            font-size: 14px;
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 8px;
+            gap: 6px;
+        }
+
+        .sparkle { color: #fbc02d; }
+
+        /* INPUTS & BUTTONS CONSISTENCY */
+        input[type="text"], 
+        input[type="number"],
+        .file-upload-btn {
+            width: 100%;
+            padding: 12px;
+            font-size: 14px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            box-sizing: border-box; /* THIS FIXES THE WIDTH ISSUE */
+            outline: none;
+            display: block;
+        }
+
+        input[type="text"]:focus, 
+        input[type="number"]:focus { 
+            border-color: var(--primary-green); 
+        }
+
+        /* Color Picker Style */
+        .color-picker-container {
+            display: flex;
+            align-items: center;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 5px;
+            cursor: pointer;
+            box-sizing: border-box;
+            width: 100%;
+        }
+        input[type="color"] {
+            -webkit-appearance: none;
+            border: none;
+            width: 40px;
+            height: 35px;
+            border-radius: 4px;
+            padding: 0;
+            cursor: pointer;
+            background: none;
+        }
+        input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+        input[type="color"]::-webkit-color-swatch { border: none; border-radius: 4px; }
+        .color-label {
+            margin-left: 15px;
+            font-weight: 500;
+            color: #666;
+        }
+
+        /* File Upload Button Specifics */
+        .file-upload-btn {
+            background: white;
+            border: 2px dashed var(--border-color); /* Dashed border for file input */
+            color: #666;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.2s;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .file-upload-btn:hover {
+            border-color: var(--primary-green);
+            color: var(--primary-green);
+            background-color: var(--bg-selected);
+        }
+        #logoInput { display: none; }
+
+        /* Radio Group (Format & Shape) */
+        .radio-group { display: flex; gap: 20px; }
+        .radio-item { display: flex; align-items: center; cursor: pointer; font-size: 14px; color: var(--text-dark); }
+        .radio-item input { accent-color: var(--primary-green); margin-right: 8px; width: 18px; height: 18px; }
+
+        /* Size Selector */
+        .size-selector { display: flex; justify-content: space-between; align-items: center; gap: 5px; }
+        .size-option {
+            font-size: 13px; font-weight: 500; color: #aaa; cursor: pointer;
+            padding: 10px; border-radius: 6px; transition: 0.2s;
+            border: 1px solid transparent;
+            flex: 1; text-align: center;
+        }
+        .size-option:hover { color: var(--text-dark); background: #f9f9f9; }
+        .size-option.active { color: var(--primary-green); background-color: var(--bg-selected); border-color: var(--primary-green); font-weight: 600; }
+        
+        .size-custom-input {
+            width: 70px !important; padding: 9px !important; border: 1px solid var(--primary-green);
+            border-radius: 6px; display: none; text-align: center;
+        }
+
+        .modal-footer { display: flex; justify-content: flex-end; gap: 15px; margin-top: 35px; }
+        button { padding: 12px 24px; border-radius: 6px; font-size: 15px; font-weight: 600; cursor: pointer; border: none; }
+        .btn-cancel { background: #f0f0f0; color: #666; }
+        .btn-cancel:hover { background: #e0e0e0; }
+        .btn-download { background: var(--primary-green); color: white; }
+        .btn-download:hover { background: var(--primary-green-hover); box-shadow: 0 4px 12px rgba(108, 158, 62, 0.3); }
+    </style>
+</head>
+<body>
+
+<div class="main-container">
+    <div class="modal-card">
+        <div class="modal-header">
+            <h2>QR Generator</h2>
+        </div>
+
+        <div class="form-group">
+            <label>Content to Encode</label>
+            <input type="text" id="qrText" value="https://example.com" placeholder="URL or Text">
+        </div>
+
+        <div class="form-group">
+            <label>Shape Style <span class="sparkle">💠</span></label>
+            <div class="radio-group">
+                <label class="radio-item">
+                    <input type="radio" name="shape" value="rounded" checked> Rounded (Dots)
+                </label>
+                <label class="radio-item">
+                    <input type="radio" name="shape" value="square"> Boxed (Original)
+                </label>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>QR Code Color <span class="sparkle">🎨</span></label>
+            <div class="color-picker-container" onclick="document.getElementById('colorInput').click()">
+                <input type="color" id="colorInput" value="#000000">
+                <span class="color-label" id="colorValue">#000000</span>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Center Logo / Icon <span class="sparkle">🖼️</span></label>
+            <label for="logoInput" class="file-upload-btn" id="logoLabel">
+                Choose an Image...
+            </label>
+            <input type="file" id="logoInput" accept="image/png, image/jpeg, image/svg+xml">
+        </div>
+
+        <div class="form-group">
+            <label>File name</label>
+            <input type="text" id="fileName" value="MyCustomQR" placeholder="File name">
+        </div>
+
+        <div class="form-group">
+            <label>Image format <span class="sparkle">✨</span></label>
+            <div class="radio-group">
+                <label class="radio-item"><input type="radio" name="format" value="png" checked> PNG</label>
+                <label class="radio-item"><input type="radio" name="format" value="svg"> SVG</label>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Image size <span class="sparkle">✨</span></label>
+            <div class="size-selector">
+                <span class="size-option" data-size="500">500px</span>
+                <span class="size-option active" data-size="1000">1000px</span>
+                <span class="size-option" data-size="2000">2000px</span>
+                <span class="size-option" id="customBtn" data-size="custom">Custom</span>
+                <input type="number" id="customSizeInput" class="size-custom-input" placeholder="px" value="1000">
+            </div>
+        </div>
+
+        <div class="modal-footer">
+            <button class="btn-cancel" id="resetBtn">Reset</button>
+            <button class="btn-download" id="downloadBtn">Download</button>
+        </div>
+    </div>
+
+    <div class="preview-card">
+        <div id="qr-preview-container"></div>
+    </div>
+</div>
+
+<script type="text/javascript" src="https://unpkg.com/qr-code-styling@1.5.0/lib/qr-code-styling.js"></script>
+
+<script>
+    // --- Configuration & State ---
+    let qrCode;
+    let logoBase64 = null;
+    let selectedSize = 1000;
+    const defaultColor = "#000000";
+    const defaultText = "https://example.com";
+
+    // --- Elements ---
+    const qrText = document.getElementById('qrText');
+    const colorInput = document.getElementById('colorInput');
+    const colorValue = document.getElementById('colorValue');
+    const logoInput = document.getElementById('logoInput');
+    const logoLabel = document.getElementById('logoLabel');
+    const sizeOptions = document.querySelectorAll('.size-option');
+    const customSizeInput = document.getElementById('customSizeInput');
+    const customBtn = document.getElementById('customBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const fileNameInput = document.getElementById('fileName');
+    const shapeInputs = document.querySelectorAll('input[name="shape"]');
+
+    // --- Helpers for Shape Logic ---
+    function getShapeOptions(shape) {
+        if (shape === 'rounded') {
+            return {
+                dots: "dots",
+                cornerSquare: "extra-rounded",
+                cornerDot: "dot"
+            };
+        } else {
+            return {
+                dots: "square",
+                cornerSquare: "square",
+                cornerDot: "square"
+            };
+        }
+    }
+
+    // --- Initialize QR Code ---
+    function initQR() {
+        // Check which radio is checked on load
+        const initialShape = document.querySelector('input[name="shape"]:checked').value;
+        const shapes = getShapeOptions(initialShape);
+
+        qrCode = new QRCodeStyling({
+            width: 300, 
+            height: 300,
+            type: "svg", 
+            data: defaultText,
+            image: null,
+            dotsOptions: {
+                color: defaultColor,
+                type: shapes.dots
+            },
+            backgroundOptions: {
+                color: "#ffffff",
+            },
+            imageOptions: {
+                crossOrigin: "anonymous",
+                margin: 5,
+                imageSize: 0.4 
+            },
+            cornersSquareOptions: { color: defaultColor, type: shapes.cornerSquare },
+            cornersDotOptions: { color: defaultColor, type: shapes.cornerDot }
+        });
+        qrCode.append(document.getElementById('qr-preview-container'));
+    }
+
+    // --- Event Listeners ---
+    
+    // Shape Switching Logic
+    shapeInputs.forEach(input => {
+        input.addEventListener('change', (e) => {
+            const shapeType = e.target.value;
+            const shapes = getShapeOptions(shapeType);
+            
+            qrCode.update({
+                dotsOptions: { type: shapes.dots },
+                cornersSquareOptions: { type: shapes.cornerSquare },
+                cornersDotOptions: { type: shapes.cornerDot }
+            });
+        });
+    });
+
+    // Text Update
+    qrText.addEventListener('input', () => {
+        qrCode.update({ data: qrText.value || defaultText });
+    });
+
+    // Color Update
+    colorInput.addEventListener('input', (e) => {
+        const color = e.target.value;
+        colorValue.textContent = color;
+        qrCode.update({
+            dotsOptions: { color: color },
+            cornersSquareOptions: { color: color },
+            cornersDotOptions: { color: color }
+        });
+    });
+
+    // Logo Upload
+    logoInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = () => {
+                logoBase64 = reader.result;
+                qrCode.update({ image: logoBase64 });
+                logoLabel.textContent = file.name;
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
+    // Size Selection
+    sizeOptions.forEach(option => {
+        option.addEventListener('click', () => {
+            sizeOptions.forEach(s => s.classList.remove('active'));
+            customSizeInput.style.display = 'none';
+            customBtn.style.display = 'block';
+
+            if (option.id === 'customBtn') {
+                customBtn.style.display = 'none';
+                customSizeInput.style.display = 'block';
+                customSizeInput.focus();
+            } else {
+                option.classList.add('active');
+                selectedSize = parseInt(option.getAttribute('data-size'));
+            }
+        });
+    });
+
+    customSizeInput.addEventListener('input', (e) => selectedSize = parseInt(e.target.value) || 1000);
+
+    // Reset
+    resetBtn.addEventListener('click', () => {
+        qrText.value = defaultText;
+        colorInput.value = defaultColor;
+        colorValue.textContent = defaultColor;
+        logoInput.value = '';
+        logoLabel.textContent = "Choose an Image...";
+        logoBase64 = null;
+        
+        // Reset shape to rounded default
+        document.querySelector('input[name="shape"][value="rounded"]').checked = true;
+        const shapes = getShapeOptions('rounded');
+
+        qrCode.update({
+            data: defaultText,
+            image: null,
+            dotsOptions: { color: defaultColor, type: shapes.dots },
+            cornersSquareOptions: { color: defaultColor, type: shapes.cornerSquare },
+            cornersDotOptions: { color: defaultColor, type: shapes.cornerDot }
+        });
+    });
+
+    // Download Logic
+    downloadBtn.addEventListener('click', async () => {
+        const format = document.querySelector('input[name="format"]:checked').value;
+        const name = fileNameInput.value || 'MyCustomQR';
+
+        qrCode.update({
+            width: selectedSize,
+            height: selectedSize
+        });
+
+        await qrCode.download({
+            name: name,
+            extension: format
+        });
+
+        qrCode.update({ width: 300, height: 300 });
+    });
+
+    // Initialize
+    initQR();
+
+</script>
+</body>
+</html>
