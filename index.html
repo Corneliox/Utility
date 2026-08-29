@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="id" class="dark">
+<html lang="en" data-theme="dark" class="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Utility Hub & Toolkit | Corneliox</title>
   
-  <!-- Tailwind CSS & Google Fonts -->
+  <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -13,14 +13,17 @@
       theme: {
         extend: {
           colors: {
-            brand: {
-              50: '#eef2ff',
-              100: '#e0e7ff',
-              400: '#818cf8',
-              500: '#6366f1',
-              600: '#4f46e5',
-              700: '#4338ca',
-              900: '#1e1b4b',
+            coral: {
+              50: '#fff5f3',
+              100: '#ffe8e4',
+              200: '#ffd5cc',
+              300: '#ffb5a6',
+              400: '#ff856e',
+              500: '#ff5742',
+              600: '#eb3e28',
+              700: '#c52e1b',
+              800: '#a3291a',
+              900: '#86271b',
             }
           },
           fontFamily: {
@@ -31,70 +34,206 @@
       }
     }
   </script>
+
+  <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  <!-- Lucide Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  
+  <!-- Lucide Icons & Canvas Confetti -->
   <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
 
   <style>
+    /* CSS Variables for Dynamic Dark & Coral Themes */
+    :root[data-theme="dark"] {
+      --bg-main: #060913;
+      --bg-panel: rgba(15, 23, 42, 0.75);
+      --bg-card: rgba(17, 24, 39, 0.7);
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --border-active: #6366f1;
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --accent: #6366f1;
+      --accent-hover: #4f46e5;
+      --accent-glow: rgba(99, 102, 241, 0.25);
+      --hero-grad-start: #818cf8;
+      --hero-grad-mid: #38bdf8;
+      --hero-grad-end: #c084fc;
+      --card-hover-shadow: rgba(99, 102, 241, 0.25);
+      --particle-color: rgba(99, 102, 241, 0.4);
+      --particle-line: rgba(56, 189, 248, 0.12);
+      --code-bg: rgba(15, 23, 42, 0.95);
+    }
+
+    :root[data-theme="coral-light"] {
+      --bg-main: #fff8f5;
+      --bg-panel: rgba(255, 255, 255, 0.85);
+      --bg-card: rgba(255, 255, 255, 0.92);
+      --border-subtle: rgba(255, 87, 66, 0.16);
+      --border-active: #ff5742;
+      --text-primary: #2b1714;
+      --text-secondary: #6e4741;
+      --text-muted: #a3756d;
+      --accent: #ff5742;
+      --accent-hover: #e5422e;
+      --accent-glow: rgba(255, 87, 66, 0.25);
+      --hero-grad-start: #ff4730;
+      --hero-grad-mid: #ff7654;
+      --hero-grad-end: #ff9d42;
+      --card-hover-shadow: rgba(255, 87, 66, 0.22);
+      --particle-color: rgba(255, 87, 66, 0.45);
+      --particle-line: rgba(255, 120, 90, 0.16);
+      --code-bg: #fff0eb;
+    }
+
     body {
       font-family: 'Inter', sans-serif;
+      background-color: var(--bg-main);
+      color: var(--text-primary);
+      transition: background-color 0.4s ease, color 0.4s ease;
     }
+
     .custom-scrollbar::-webkit-scrollbar {
       width: 6px;
       height: 6px;
     }
     .custom-scrollbar::-webkit-scrollbar-track {
-      background: rgba(30, 41, 59, 0.5);
+      background: transparent;
     }
     .custom-scrollbar::-webkit-scrollbar-thumb {
-      background: rgba(99, 102, 241, 0.4);
+      background: var(--accent);
+      opacity: 0.4;
       border-radius: 9999px;
     }
-    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-      background: rgba(99, 102, 241, 0.8);
-    }
+
     .glass-panel {
-      background: rgba(15, 23, 42, 0.75);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: var(--bg-panel);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid var(--border-subtle);
+      transition: all 0.3s ease;
     }
-    .glow-hover:hover {
-      box-shadow: 0 0 25px -5px rgba(99, 102, 241, 0.35);
+
+    .glass-card {
+      background: var(--bg-card);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid var(--border-subtle);
+      transition: transform 0.2s cubic-bezier(0.2, 0, 0.2, 1), box-shadow 0.2s ease, border-color 0.2s ease;
+      transform-style: preserve-3d;
+      will-change: transform;
+    }
+
+    .glass-card:hover {
+      box-shadow: 0 16px 32px -8px var(--card-hover-shadow);
+      border-color: var(--accent);
+    }
+
+    .hero-gradient {
+      background: linear-gradient(135deg, var(--hero-grad-start), var(--hero-grad-mid), var(--hero-grad-end));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    /* Ambient Pulsing Glow Orbs */
+    .glow-orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.28;
+      pointer-events: none;
+      animation: floatOrb 12s infinite alternate ease-in-out;
+    }
+
+    @keyframes floatOrb {
+      0% { transform: translateY(0px) scale(1); }
+      50% { transform: translateY(-30px) scale(1.08); }
+      100% { transform: translateY(20px) scale(0.95); }
+    }
+
+    /* Typewriter Cursor */
+    .cursor-blink {
+      display: inline-block;
+      width: 3px;
+      margin-left: 4px;
+      background-color: var(--accent);
+      animation: blink 0.9s infinite;
+    }
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+
+    /* Button Pulse on Active */
+    .btn-active {
+      background: var(--accent) !important;
+      color: #ffffff !important;
+      box-shadow: 0 4px 14px var(--accent-glow) !important;
     }
   </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col custom-scrollbar selection:bg-indigo-500 selection:text-white">
+<body class="min-h-screen flex flex-col custom-scrollbar selection:bg-rose-500 selection:text-white relative overflow-x-hidden">
 
-  <!-- Background Decorative Ambient Glows -->
+  <!-- Interactive Canvas Particle Background -->
+  <canvas id="particleCanvas" class="fixed inset-0 pointer-events-none z-0"></canvas>
+
+  <!-- Ambient Glow Orbs -->
   <div class="fixed inset-0 overflow-hidden pointer-events-none z-0">
-    <div class="absolute -top-40 -left-40 w-96 h-96 bg-indigo-600/20 rounded-full blur-3xl"></div>
-    <div class="absolute top-1/3 -right-40 w-96 h-96 bg-purple-600/15 rounded-full blur-3xl"></div>
-    <div class="absolute -bottom-20 left-1/3 w-96 h-96 bg-cyan-600/15 rounded-full blur-3xl"></div>
+    <div class="glow-orb w-96 h-96 -top-32 -left-32 bg-indigo-600 dark:bg-indigo-600/30" id="orb1" style="background-color: var(--accent);"></div>
+    <div class="glow-orb w-96 h-96 top-1/3 -right-32 bg-cyan-500 dark:bg-cyan-500/20" id="orb2"></div>
+    <div class="glow-orb w-[30rem] h-[30rem] -bottom-20 left-1/3 bg-purple-600 dark:bg-purple-600/20" id="orb3"></div>
   </div>
 
-  <!-- Main Header -->
-  <header class="sticky top-0 z-40 glass-panel border-b border-slate-800/80">
+  <!-- Main Navigation Header -->
+  <header class="sticky top-0 z-40 glass-panel border-b">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-cyan-400 p-0.5 shadow-lg shadow-indigo-500/20 flex items-center justify-center">
-          <div class="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center">
-            <i data-lucide="wrench" class="w-5 h-5 text-indigo-400"></i>
+      
+      <!-- Brand Logo -->
+      <div class="flex items-center gap-3 cursor-pointer" onclick="window.scrollTo({top:0, behavior:'smooth'})">
+        <div class="w-10 h-10 rounded-xl p-0.5 shadow-lg flex items-center justify-center transition-transform hover:scale-105"
+             style="background: linear-gradient(135deg, var(--hero-grad-start), var(--hero-grad-end));">
+          <div class="w-full h-full rounded-[10px] flex items-center justify-center" style="background: var(--bg-main);">
+            <i data-lucide="wrench" class="w-5 h-5" style="color: var(--accent);"></i>
           </div>
         </div>
         <div>
-          <span class="font-bold text-lg tracking-tight bg-gradient-to-r from-white via-slate-200 to-indigo-300 bg-clip-text text-transparent">Utility Hub</span>
-          <span class="text-[11px] text-slate-400 ml-1.5 px-2 py-0.5 rounded-full bg-slate-800/80 border border-slate-700">Auto-Catalog CI/CD</span>
+          <span class="font-extrabold text-lg tracking-tight bg-clip-text" style="color: var(--text-primary);">Utility Hub</span>
+          <span class="text-[10px] font-semibold ml-1.5 px-2 py-0.5 rounded-full border"
+                style="background: var(--code-bg); color: var(--accent); border-color: var(--border-subtle);">v2.2</span>
         </div>
       </div>
 
-      <div class="flex items-center gap-3">
+      <!-- Controls: Theme Toggle, Language Switcher, GitHub Repo -->
+      <div class="flex items-center gap-2.5">
+        
+        <!-- Language Selector Dropdown -->
+        <div class="relative">
+          <select id="langSelect" onchange="changeLanguage(this.value)" 
+                  class="appearance-none font-medium text-xs px-3 py-1.5 pr-7 rounded-lg glass-panel cursor-pointer outline-none transition hover:border-indigo-400"
+                  style="color: var(--text-primary); border-color: var(--border-subtle);">
+            <option value="en">🇺🇸 EN (English)</option>
+            <option value="id">🇮🇩 ID (Indonesia)</option>
+            <option value="zh">🇹🇼 繁中 (Traditional)</option>
+          </select>
+          <i data-lucide="globe" class="w-3.5 h-3.5 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none opacity-60"></i>
+        </div>
+
+        <!-- Theme Toggle Button -->
+        <button id="themeToggleBtn" onclick="toggleTheme()" 
+                class="p-2 rounded-lg glass-panel transition-transform hover:scale-110 active:rotate-45"
+                style="color: var(--text-primary); border-color: var(--border-subtle);"
+                title="Ganti Tema / Toggle Theme">
+          <i data-lucide="sun" id="themeIcon" class="w-4 h-4"></i>
+        </button>
+
+        <!-- GitHub Repo Link -->
         <a href="https://github.com/Corneliox/Utility" target="_blank" rel="noopener noreferrer" 
-           class="flex items-center gap-2 text-xs sm:text-sm font-medium px-3.5 py-2 rounded-lg bg-slate-900/90 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-700/80 transition shadow-sm">
+           class="flex items-center gap-1.5 text-xs font-semibold px-3.5 py-1.5 rounded-lg glass-panel transition shadow-sm hover:scale-105"
+           style="color: var(--text-primary); border-color: var(--border-subtle);">
           <i data-lucide="github" class="w-4 h-4"></i>
-          <span class="hidden sm:inline">GitHub Repository</span>
+          <span class="hidden sm:inline">GitHub</span>
         </a>
       </div>
     </div>
@@ -104,183 +243,655 @@
   <main class="flex-grow z-10">
     <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-8">
       <div class="text-center max-w-3xl mx-auto space-y-4">
-        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-xs font-semibold uppercase tracking-wider">
-          <i data-lucide="sparkles" class="w-3.5 h-3.5"></i> Automated Web Tools & AI Dataset Pipelines
+        
+        <!-- Top Animated Badge -->
+        <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border text-xs font-semibold uppercase tracking-wider transition-transform hover:scale-105"
+             style="background: var(--code-bg); border-color: var(--border-subtle); color: var(--accent);">
+          <i data-lucide="sparkles" class="w-3.5 h-3.5 animate-spin" style="animation-duration: 4s;"></i>
+          <span id="badgeText">Web Tools & AI Dataset Automation</span>
         </div>
-        <h1 class="text-3xl sm:text-5xl font-extrabold tracking-tight text-white leading-tight">
-          Pusat Utilitas Digital & <span class="bg-gradient-to-r from-indigo-400 via-cyan-400 to-purple-400 bg-clip-text text-transparent">Dataset Pipeline</span>
+
+        <!-- Dynamic Typing Headline -->
+        <h1 class="text-3xl sm:text-5xl font-black tracking-tight leading-tight" style="color: var(--text-primary);">
+          <span id="heroTitlePrefix">Digital Utilities &</span><br>
+          <span class="hero-gradient" id="typewriterText">AI Dataset Pipelines</span><span class="cursor-blink">&nbsp;</span>
         </h1>
-        <p class="text-slate-400 text-sm sm:text-base leading-relaxed">
-          Koleksi perkakas interaktif siap pakai berbasis web serta skrip automasi Python untuk kurasi dataset gambar, teks terjemahan, diagram visual, dan kalibrasi presisi.
+
+        <!-- Subtitle -->
+        <p class="text-xs sm:text-sm leading-relaxed max-w-2xl mx-auto" style="color: var(--text-secondary);" id="heroSubtitle">
+          A curated collection of ready-to-use interactive web utilities and high-performance Python scripts for dataset curation, visual diagramming, and precision measurement.
         </p>
 
-        <!-- Search and Filter Control -->
+        <!-- Search Box with Live Glow -->
         <div class="pt-4 flex flex-col sm:flex-row items-center gap-3 max-w-2xl mx-auto">
-          <div class="relative w-full">
-            <i data-lucide="search" class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
-            <input type="text" id="searchInput" placeholder="Cari utilitas (e.g. mermaid, qr, upscaler, crop, validator)..." 
-                   class="w-full bg-slate-900/90 border border-slate-700/80 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 rounded-xl pl-10 pr-4 py-2.5 text-sm text-slate-200 placeholder-slate-500 outline-none transition">
+          <div class="relative w-full group">
+            <i data-lucide="search" class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 transition-colors group-focus-within:text-rose-500" style="color: var(--text-muted);"></i>
+            <input type="text" id="searchInput" placeholder="Search utilities (e.g. mermaid, qr, upscaler, crop, validator)..." 
+                   class="w-full glass-panel rounded-xl pl-10 pr-10 py-3 text-sm outline-none transition-all focus:ring-2 focus:ring-rose-400"
+                   style="color: var(--text-primary); border-color: var(--border-subtle);">
+            <button id="clearSearch" onclick="clearSearchInput()" class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-xs p-1 rounded hover:bg-slate-800/40">
+              <i data-lucide="x" class="w-3.5 h-3.5"></i>
+            </button>
           </div>
         </div>
 
-        <!-- Filter Badges -->
-        <div class="flex flex-wrap items-center justify-center gap-2 pt-2" id="filterContainer">
-          <button data-filter="all" class="filter-btn active px-3.5 py-1.5 rounded-lg text-xs font-medium bg-indigo-600 text-white shadow-md shadow-indigo-600/30 transition">
-            Semua Perkakas (<span id="count-all">...</span>)
+        <!-- Filter Badges Pill Controls -->
+        <div class="flex flex-wrap items-center justify-center gap-2 pt-3" id="filterContainer">
+          <button data-filter="all" class="filter-btn btn-active px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all">
+            <span id="filter-all-label">All Tools</span> (<span id="count-all">...</span>)
           </button>
-          <button data-filter="web" class="filter-btn px-3.5 py-1.5 rounded-lg text-xs font-medium bg-slate-900 text-slate-300 hover:bg-slate-800 border border-slate-800 transition">
-            🌐 Web Interactive (<span id="count-web">...</span>)
+          <button data-filter="web" class="filter-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold glass-panel transition-all" style="color: var(--text-secondary);">
+            <span id="filter-web-label">🌐 Web Interactive</span> (<span id="count-web">...</span>)
           </button>
-          <button data-filter="python" class="filter-btn px-3.5 py-1.5 rounded-lg text-xs font-medium bg-slate-900 text-slate-300 hover:bg-slate-800 border border-slate-800 transition">
-            🐍 Python Pipelines (<span id="count-py">...</span>)
+          <button data-filter="python" class="filter-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold glass-panel transition-all" style="color: var(--text-secondary);">
+            <span id="filter-py-label">🐍 Python Pipelines</span> (<span id="count-py">...</span>)
           </button>
-          <button data-filter="image" class="filter-btn px-3.5 py-1.5 rounded-lg text-xs font-medium bg-slate-900 text-slate-300 hover:bg-slate-800 border border-slate-800 transition">
-            🖼️ Gambar & Visual
+          <button data-filter="image" class="filter-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold glass-panel transition-all" style="color: var(--text-secondary);">
+            <span id="filter-img-label">🖼️ Image & Visual</span>
           </button>
-          <button data-filter="dataset" class="filter-btn px-3.5 py-1.5 rounded-lg text-xs font-medium bg-slate-900 text-slate-300 hover:bg-slate-800 border border-slate-800 transition">
-            🧠 AI & Dataset
+          <button data-filter="dataset" class="filter-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold glass-panel transition-all" style="color: var(--text-secondary);">
+            <span id="filter-data-label">🧠 AI & Dataset</span>
           </button>
-          <button data-filter="measure" class="filter-btn px-3.5 py-1.5 rounded-lg text-xs font-medium bg-slate-900 text-slate-300 hover:bg-slate-800 border border-slate-800 transition">
-            📏 Pengukuran
+          <button data-filter="measure" class="filter-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold glass-panel transition-all" style="color: var(--text-secondary);">
+            <span id="filter-measure-label">📏 Measurement</span>
           </button>
         </div>
       </div>
     </section>
 
     <!-- Main Grid Section -->
-    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
       
       <!-- Section 1: Web Interactive Utilities -->
-      <div class="mb-12" id="web-section">
+      <div class="mb-14" id="web-section">
         <div class="flex items-center gap-3 mb-6">
-          <div class="p-2 rounded-lg bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+          <div class="p-2.5 rounded-xl border shadow-sm flex items-center justify-center"
+               style="background: var(--code-bg); border-color: var(--border-subtle); color: var(--accent);">
             <i data-lucide="globe" class="w-5 h-5"></i>
           </div>
           <div>
-            <h2 class="text-xl font-bold text-white tracking-tight">Interactive Web Apps</h2>
-            <p class="text-xs text-slate-400">Dapat dijalankan langsung di browser tanpa instalasi apapun.</p>
+            <h2 class="text-xl font-bold tracking-tight" style="color: var(--text-primary);" id="webSectionTitle">Interactive Web Apps</h2>
+            <p class="text-xs" style="color: var(--text-muted);" id="webSectionDesc">Runs directly in your browser without any server setup.</p>
           </div>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="webAppsGrid">
-          <!-- Dynamic Content Loaded from tools.json -->
+          <!-- Dynamic Web Cards Injected Here -->
         </div>
       </div>
 
       <!-- Section 2: Python AI Dataset Automation Pipelines -->
       <div id="python-section">
         <div class="flex items-center gap-3 mb-6">
-          <div class="p-2 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/20">
+          <div class="p-2.5 rounded-xl border shadow-sm flex items-center justify-center"
+               style="background: var(--code-bg); border-color: var(--border-subtle); color: var(--accent);">
             <i data-lucide="terminal" class="w-5 h-5"></i>
           </div>
           <div>
-            <h2 class="text-xl font-bold text-white tracking-tight">Python AI Dataset & Automation Scripts</h2>
-            <p class="text-xs text-slate-400">Skrip desktop bertenaga tinggi untuk pemrosesan batch file di sistem lokal.</p>
+            <h2 class="text-xl font-bold tracking-tight" style="color: var(--text-primary);" id="pySectionTitle">Python AI Dataset & Automation Scripts</h2>
+            <p class="text-xs" style="color: var(--text-muted);" id="pySectionDesc">High-performance desktop scripts for batch local file processing.</p>
           </div>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="pythonScriptsGrid">
-          <!-- Dynamic Content Loaded from tools.json -->
+          <!-- Dynamic Python Cards Injected Here -->
         </div>
       </div>
 
       <!-- Empty Search State -->
-      <div id="emptyState" class="hidden text-center py-16">
-        <div class="w-16 h-16 rounded-2xl bg-slate-900 border border-slate-800 text-slate-500 mx-auto flex items-center justify-center mb-4">
+      <div id="emptyState" class="hidden text-center py-20">
+        <div class="w-16 h-16 rounded-2xl glass-panel mx-auto flex items-center justify-center mb-4" style="color: var(--text-muted);">
           <i data-lucide="search-x" class="w-8 h-8"></i>
         </div>
-        <h3 class="text-lg font-bold text-slate-300">Tidak ada utilitas yang cocok</h3>
-        <p class="text-xs text-slate-500 mt-1">Coba gunakan kata kunci pencarian atau kategori lain.</p>
+        <h3 class="text-lg font-bold" style="color: var(--text-primary);" id="emptyTitle">No matching utilities found</h3>
+        <p class="text-xs mt-1" style="color: var(--text-muted);" id="emptyDesc">Try searching with different keywords or category filters.</p>
       </div>
 
     </section>
   </main>
 
   <!-- Interactive App Runner Modal (In-Page Iframe) -->
-  <div id="appModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden flex-col items-center justify-center p-2 sm:p-4 transition-opacity">
-    <div class="w-full max-w-6xl h-[92vh] bg-slate-900 border border-slate-700/80 rounded-2xl shadow-2xl flex flex-col overflow-hidden">
+  <div id="appModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden flex-col items-center justify-center p-2 sm:p-4 transition-opacity">
+    <div class="w-full max-w-6xl h-[92vh] glass-panel rounded-2xl shadow-2xl flex flex-col overflow-hidden border">
       
       <!-- Modal Header -->
-      <div class="px-4 py-3 bg-slate-900 border-b border-slate-800 flex items-center justify-between">
+      <div class="px-4 py-3 border-b flex items-center justify-between" style="border-color: var(--border-subtle); background: var(--bg-main);">
         <div class="flex items-center gap-3">
           <div class="w-3 h-3 rounded-full bg-rose-500"></div>
           <div class="w-3 h-3 rounded-full bg-amber-500"></div>
           <div class="w-3 h-3 rounded-full bg-emerald-500"></div>
-          <span id="modalAppTitle" class="font-semibold text-sm text-slate-200 ml-2">App Viewer</span>
+          <span id="modalAppTitle" class="font-bold text-sm ml-2" style="color: var(--text-primary);">App Viewer</span>
         </div>
 
         <div class="flex items-center gap-2">
-          <button onclick="reloadModalFrame()" class="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition" title="Muat Ulang">
+          <button onclick="reloadModalFrame()" class="p-1.5 rounded-lg glass-panel hover:scale-105 transition" title="Reload / Muat Ulang">
             <i data-lucide="rotate-cw" class="w-4 h-4"></i>
           </button>
-          <a id="modalExternalLink" href="#" target="_blank" class="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition" title="Buka di Tab Baru">
+          <a id="modalExternalLink" href="#" target="_blank" class="p-1.5 rounded-lg glass-panel hover:scale-105 transition" title="Open in New Tab">
             <i data-lucide="external-link" class="w-4 h-4"></i>
           </a>
-          <button onclick="closeAppModal()" class="p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 hover:text-rose-300 border border-rose-500/20 transition" title="Tutup (ESC)">
+          <button onclick="closeAppModal()" class="p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 transition hover:scale-105" title="Close (ESC)">
             <i data-lucide="x" class="w-4 h-4"></i>
           </button>
         </div>
       </div>
 
       <!-- Modal Iframe Container -->
-      <div class="flex-1 bg-slate-950 relative">
+      <div class="flex-1 relative" style="background: var(--bg-main);">
         <iframe id="modalIframe" src="about:blank" class="w-full h-full border-0"></iframe>
       </div>
     </div>
   </div>
 
   <!-- Toast Notification -->
-  <div id="toast" class="fixed bottom-6 right-6 z-50 transform translate-y-20 opacity-0 transition-all duration-300 bg-slate-900 border border-indigo-500/40 shadow-xl rounded-xl px-4 py-2.5 flex items-center gap-2 text-xs text-white">
-    <i data-lucide="check" class="w-4 h-4 text-emerald-400"></i>
-    <span id="toastMsg">Perintah disalin ke clipboard!</span>
+  <div id="toast" class="fixed bottom-6 right-6 z-50 transform translate-y-20 opacity-0 transition-all duration-300 glass-panel shadow-2xl rounded-xl px-4 py-2.5 flex items-center gap-2.5 text-xs"
+       style="border-color: var(--accent);">
+    <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i>
+    <span id="toastMsg" class="font-medium" style="color: var(--text-primary);">Command copied to clipboard!</span>
   </div>
 
   <!-- Footer -->
-  <footer class="border-t border-slate-800/80 bg-slate-950/80 py-8 text-center text-xs text-slate-500 z-10">
+  <footer class="border-t py-8 text-center text-xs z-10 glass-panel" style="border-color: var(--border-subtle); color: var(--text-muted);">
     <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-      <div class="flex items-center gap-2">
-        <span class="font-semibold text-slate-400">Corneliox / Utility</span> &bull; Auto-updating via GitHub Actions
+      <div class="flex items-center gap-2 font-semibold" style="color: var(--text-secondary);">
+        <span>Corneliox / Utility</span> &bull; <span>Open Source Toolkit</span>
       </div>
-      <div>
-        Dibuat untuk automasi alur kerja, pengolahan dataset AI, dan perkakas web mandiri.
+      <div id="footerText">
+        Created for workflow automation, AI dataset engineering, and standalone web tools.
       </div>
     </div>
   </footer>
 
-  <!-- Dynamic Catalog Loader & Interactive Logic -->
+  <!-- Multilingual & Interactive Logic Scripts -->
   <script>
-    let allTools = [];
-    let currentFilter = 'all';
+    // --- 1. Multilingual Translations Dictionary ---
+    const i18n = {
+      en: {
+        badgeText: "Web Tools & AI Dataset Automation",
+        heroTitlePrefix: "Digital Utilities &",
+        heroSubtitle: "A curated collection of ready-to-use interactive web utilities and high-performance Python scripts for dataset curation, visual diagramming, and precision measurement.",
+        searchPlaceholder: "Search utilities (e.g. mermaid, qr, upscaler, crop, validator)...",
+        filterAll: "All Tools",
+        filterWeb: "🌐 Web Interactive",
+        filterPy: "🐍 Python Pipelines",
+        filterImg: "🖼️ Image & Visual",
+        filterData: "🧠 AI & Dataset",
+        filterMeasure: "📏 Measurement",
+        webSectionTitle: "Interactive Web Apps",
+        webSectionDesc: "Runs directly in your browser without any server setup.",
+        pySectionTitle: "Python AI Dataset & Automation Scripts",
+        pySectionDesc: "High-performance desktop scripts for batch local file processing.",
+        emptyTitle: "No matching utilities found",
+        emptyDesc: "Try searching with different keywords or category filters.",
+        btnRun: "Launch Here",
+        btnTab: "Open in Tab",
+        copied: "Command copied to clipboard!",
+        copyFail: "Failed to copy command",
+        depsLabel: "Deps",
+        sourceLabel: "Source",
+        footerText: "Created for workflow automation, AI dataset engineering, and standalone web tools.",
+        typewriterKeywords: ["AI Dataset Pipelines", "Interactive Flowcharts", "Precision Optical Measuring", "Image Grid Splitters", "Clean & Fast Scripts"]
+      },
+      id: {
+        badgeText: "Web Tools & Otomasi Dataset AI",
+        heroTitlePrefix: "Pusat Utilitas Digital &",
+        heroSubtitle: "Koleksi perkakas interaktif siap pakai berbasis web serta skrip automasi Python untuk kurasi dataset gambar, teks terjemahan, diagram visual, dan kalibrasi presisi.",
+        searchPlaceholder: "Cari utilitas (e.g. mermaid, qr, upscaler, crop, validator)...",
+        filterAll: "Semua Perkakas",
+        filterWeb: "🌐 Web Interactive",
+        filterPy: "🐍 Python Pipelines",
+        filterImg: "🖼️ Gambar & Visual",
+        filterData: "🧠 AI & Dataset",
+        filterMeasure: "📏 Pengukuran",
+        webSectionTitle: "Aplikasi Web Interaktif",
+        webSectionDesc: "Dapat dijalankan langsung di browser tanpa instalasi apapun.",
+        pySectionTitle: "Skrip Automasi Dataset AI & Python",
+        pySectionDesc: "Skrip desktop bertenaga tinggi untuk pemrosesan batch file di sistem lokal.",
+        emptyTitle: "Tidak ada utilitas yang cocok",
+        emptyDesc: "Coba gunakan kata kunci pencarian atau kategori lain.",
+        btnRun: "Jalankan di Sini",
+        btnTab: "Buka di Tab Baru",
+        copied: "Perintah disalin ke clipboard!",
+        copyFail: "Gagal menyalin perintah",
+        depsLabel: "Dependensi",
+        sourceLabel: "Sumber",
+        footerText: "Dibuat untuk automasi alur kerja, pengolahan dataset AI, dan perkakas web mandiri.",
+        typewriterKeywords: ["Dataset Pipeline AI", "Flowchart Interaktif", "Pengukuran Garis Presisi", "Pemotong Gambar Grid", "Skrip Cepat & Bersih"]
+      },
+      zh: {
+        badgeText: "自動化網頁工具與 AI 數據集工作流",
+        heroTitlePrefix: "數位實用工具庫與",
+        heroSubtitle: "精選即開即用的瀏覽器互動工具與高效 Python 腳本，專為 AI 數據集清洗、視覺圖表繪製及精準測量而設計。",
+        searchPlaceholder: "搜尋工具（例如 mermaid、qr、upscaler、crop、validator）...",
+        filterAll: "全部工具",
+        filterWeb: "🌐 網頁互動工具",
+        filterPy: "🐍 Python 數據工作流",
+        filterImg: "🖼️ 圖像與視覺",
+        filterData: "🧠 AI 數據處理",
+        filterMeasure: "📏 精準測量",
+        webSectionTitle: "瀏覽器互動工具",
+        webSectionDesc: "直接於瀏覽器運行，無需安裝任何後端環境。",
+        pySectionTitle: "Python AI 數據與自動化腳本",
+        pySectionDesc: "針對本地批次檔案處理的高效桌面腳本。",
+        emptyTitle: "查無符合條件的工具",
+        emptyDesc: "請嘗試不同的搜尋關鍵字或分類篩選。",
+        btnRun: "在此運行",
+        btnTab: "新分頁開啟",
+        copied: "指令已複製到剪貼簿！",
+        copyFail: "複製失敗",
+        depsLabel: "依賴套件",
+        sourceLabel: "原始碼",
+        footerText: "專為工作流程自動化、AI 數據工程及獨立網頁工具打造。",
+        typewriterKeywords: ["AI 數據集工作流", "Mermaid 互動流程圖", "光學高精度測量", "等比影像切圖器", "輕量高效自動化"]
+      }
+    };
 
-    // Toast Trigger
+    // Tool Multilingual Details
+    const toolTranslations = {
+      "mermaid_flowchart_app.html": {
+        en: { title: "Mermaid Flowchart Studio", desc: "Advanced visual editor for Mermaid flowcharts with interactive canvas pan/zoom, preset templates, SVG/PNG export, and custom styling." },
+        id: { title: "Mermaid Flowchart Studio", desc: "Editor visual canggih untuk diagram alir (Flowchart Mermaid) dengan live canvas pan/zoom, template preset, ekspor SVG/PNG, dan kustomisasi style." },
+        zh: { title: "Mermaid 流程圖工作室", desc: "進階 Mermaid 流程圖視覺化編輯器，支援畫布平移/縮放、預設模板、SVG/PNG 匯出與自訂樣式。" }
+      },
+      "folder2tree.html": {
+        en: { title: "Folder Tree Browser & Generator", desc: "Interactively explore local directories in your browser, select specific files, and export formatted folder trees to Markdown or Plain Text." },
+        id: { title: "Folder Tree Browser & Generator", desc: "Eksplorasi folder lokal secara interaktif via browser, seleksi berkas tertentu, dan generate pohon struktur folder ke format Markdown / Plain Text." },
+        zh: { title: "資料夾目錄樹瀏覽器", desc: "在瀏覽器中互動式瀏覽本地資料夾，自訂選取檔案並產生 Markdown 或純文字格式的目錄結構樹。" }
+      },
+      "qrCode.html": {
+        en: { title: "Custom Style QR Generator", desc: "Modern QR code generator with custom color palettes, transparent background support, rounded/dot modules, and high-resolution export." },
+        id: { title: "Custom Style QR Generator", desc: "Generator QR Code modern dengan styling warna bebas, opsi background transparan, pemilihan bentuk modul (dots/rounded), dan ekspor resolusi tinggi." },
+        zh: { title: "自訂風格 QR Code 產生器", desc: "現代化 QR Code 產生器，支援自訂配色、透明背景、圓角/圓點樣式及高解析度下載。" }
+      },
+      "Crop_image_pembanding.html": {
+        en: { title: "Equal Aspect Image Grid Splitter", desc: "Split images into equal grid tiles for side-by-side comparison, comic panels, or AI training dataset slicing." },
+        id: { title: "Pemotong Gambar Sama Rata", desc: "Membagi satu atau beberapa gambar menjadi potongan sama rata (grid) untuk perbandingan detail, aset komik, atau kurasi dataset AI." },
+        zh: { title: "等比例影像切圖工具", desc: "將單張或多張影像均勻分割為網格切片，適用於細節對比、漫畫分鏡或 AI 數據集裁切。" }
+      },
+      "px2mm.html": {
+        en: { title: "Precision Line Measure (px2mm)", desc: "Calibrated precision distance measuring on visual/OCT images with standard ratio (200 px = 1 mm), multi-point markers, and history logging." },
+        id: { title: "Pengukur Garis Presisi (px2mm)", desc: "Kalibrasi pengukuran garis presisi pada citra visual (OCT) dengan rasio standar 200 px = 1 mm, pengukuran multi-titik, dan pencatatan riwayat." },
+        zh: { title: "高精度像素/公釐測量尺 (px2mm)", desc: "針對視覺與 OCT 影像的精準距離校準測量工具（標準比率 200 px = 1 mm），支援多點測量與歷史記錄。" }
+      },
+      "scalepx2mm.html": {
+        en: { title: "2D Scale Axis Ruler (scalepx2mm)", desc: "Image measurement with simultaneous X and Y coordinate guides, customizable font sizing, and automated millimeter dimension calculations." },
+        id: { title: "Skala Sumbu X & Y Presisi", desc: "Pengukuran gambar dengan panduan skala sumbu X dan Y simultan, kontrol ukuran font label, serta penghitungan dimensi otomatis dalam milimeter." },
+        zh: { title: "2D 雙軸比例尺測量器", desc: "支援 X/Y 雙軸座標尺引導之影像測量工具，具備自訂標籤字型大小與自動公釐換算。" }
+      },
+      "1_rawval_imgjpg_folder.py": {
+        en: { title: "Dataset Folder & Pair Validator", desc: "Recursively scans subfolders, validates image (.jpg, .png, .webp) and annotation (.txt) pairs, detects damaged files, and outputs detailed logs." },
+        id: { title: "Dataset Folder & Pair Validator", desc: "Memindai seluruh subfolder dataset secara rekursif, memvalidasi pasangan file gambar (.jpg, .png, .webp) dengan berkas anotasi .txt, dan membuat laporan scan." },
+        zh: { title: "數據集資料夾與配對驗證器", desc: "遞迴掃描數據集子目錄，驗證圖片與 .txt 標註檔的配對完整性，偵測損毀檔案並輸出報告。" }
+      },
+      "2_extractmergefile.py": {
+        en: { title: "Dataset File Extractor & Merger", desc: "Automated script to extract, consolidate, and merge dataset file collections across nested directories." },
+        id: { title: "Dataset File Extractor & Merger", desc: "Skrip automasi untuk mengekstrak dan menggabungkan kumpulan berkas dataset dari berbagai subfolder." },
+        zh: { title: "數據集檔案提取與合併工具", desc: "自動遍歷多層子目錄，提取並合併分散的數據集檔案。" }
+      },
+      "3_img_txt_validate.py": {
+        en: { title: "Image-Text Pair Completeness Check", desc: "Verifies that every image has an accompanying caption file and eliminates orphaned annotation files." },
+        id: { title: "Pemeriksa Kelengkapan Anotasi Gambar", desc: "Memvalidasi kelengkapan berkas gambar dan berkas teks pendamping agar tidak ada gambar tanpa anotasi atau teks tanpa gambar." },
+        zh: { title: "圖文配對完整性檢查器", desc: "確保每張影像皆有對應的標註文字檔，排除孤立的未配對檔案。" }
+      },
+      "4_validatedamaged.py": {
+        en: { title: "Corrupt Image Detector & Anomaly Scanner", desc: "Verifies image bitstream integrity with Pillow to isolate corrupt headers before AI training." },
+        id: { title: "Detektor Gambar Rusak & Anomali", desc: "Membuka dan memverifikasi integritas bitstream berkas citra untuk memastikan tidak ada gambar rusak atau header corrupt." },
+        zh: { title: "損毀影像與異常掃描器", desc: "使用 Pillow 檢驗影像資料流完整性，在模型訓練前預先隔離損毀或異常圖檔。" }
+      },
+      "5_Upscalermin256.py": {
+        en: { title: "Aspect-Ratio Aware Image Upscaler", desc: "Upscales and pads images under 256x256 px using high-quality Lanczos resampling while preserving aspect ratio." },
+        id: { title: "Aspect-Ratio Aware Image Upscaler", desc: "Memindai dan melakukan upscale pada gambar yang dimensinya di bawah 256x256 px dengan filter Lanczos berkualitas tinggi." },
+        zh: { title: "保持寬高比之影像放大器", desc: "將小於 256x256 像素的影像使用高品質 Lanczos 採樣進行放大與填充補邊。" }
+      },
+      "5_1_Upscalermin256RGBA.py": {
+        en: { title: "Image Upscaler with Alpha Channel (RGBA)", desc: "Minimum dimension image upscaler with specialized preservation for transparent RGBA alpha channels." },
+        id: { title: "Image Upscaler dengan Kanal Alpha (RGBA)", desc: "Penskalaan gambar beresolusi minimal 256x256 px dengan penanganan khusus kanal transparansi RGBA." },
+        zh: { title: "支援 RGBA 透明通道之影像放大器", desc: "支援透明通道之最小尺寸影像放大工具，完美保留 Alpha 圖層細節。" }
+      },
+      "6_caption_bhs_to_eng.py": {
+        en: { title: "Dataset Caption Typo Fixer & Translator", desc: "Automatic Indonesian typo correction, comic sound effect/onomatopoeia protection, and batch English translation for AI caption datasets." },
+        id: { title: "Dataset Caption Typo Fixer & Translator", desc: "Koreksi otomatis saltik (typo), perlindungan tag onomatope/efek suara komik, dan penerjemahan batch caption dataset ke Bahasa Inggris." },
+        zh: { title: "數據集標註錯字修復與翻譯器", desc: "自動修復印尼文錯字、保護漫畫擬聲詞/音效標籤，並批次翻譯為英文訓練標註。" }
+      },
+      "folder2tree.py": {
+        en: { title: "CLI Directory Tree Generator", desc: "Quick command-line utility to output visual directory structure trees to the terminal or Markdown files." },
+        id: { title: "CLI Directory Tree Generator", desc: "Menghasilkan representasi visual struktur folder ke terminal atau file teks markdown secara cepat." },
+        zh: { title: "CLI 目錄樹產生器", desc: "快速在終端機輸出清晰的樹狀目錄結構，或匯出為 Markdown 格式文檔。" }
+      },
+      "library_scanner_app.py": {
+        en: { title: "Python Environment & Library Scanner", desc: "Desktop GUI application to inspect installed Python packages, audit versions, and export environment manifests." },
+        id: { title: "Python Environment & Library Scanner", desc: "Aplikasi GUI desktop untuk memindai paket-paket Python yang terpasang dan mengekspor daftar dependensi lingkungan kerja." },
+        zh: { title: "Python 環境與函式庫掃描器", desc: "桌面 GUI 應用程式，用於檢查已安裝的 Python 套件、版本相容性並匯出環境依賴清單。" }
+      },
+      "mergetxt_file.py": {
+        en: { title: "Batch Text Merger Utility", desc: "Consolidates multiple text (.txt) files in a directory into a single unified document." },
+        id: { title: "Batch Text Merger Utility", desc: "Menggabungkan banyak berkas teks (.txt) dari satu direktori menjadi satu berkas terkonsolidasi." },
+        zh: { title: "批次文字檔合併工具", desc: "將目錄中的多個文字檔案 (.txt) 快速合併整合為單一檔案。" }
+      }
+    };
+
+    // State Variables
+    let currentLang = localStorage.getItem('utility_lang') || 'en';
+    let currentTheme = localStorage.getItem('utility_theme') || 'dark';
+    let currentFilter = 'all';
+    let allTools = [];
+
+    // --- 2. Theme Handling ---
+    function applyTheme(theme) {
+      currentTheme = theme;
+      document.documentElement.setAttribute('data-theme', theme);
+      localStorage.setItem('utility_theme', theme);
+
+      const themeIcon = document.getElementById('themeIcon');
+      if (theme === 'dark') {
+        document.documentElement.classList.add('dark');
+        themeIcon.setAttribute('data-lucide', 'sun');
+      } else {
+        document.documentElement.classList.remove('dark');
+        themeIcon.setAttribute('data-lucide', 'moon');
+      }
+      lucide.createIcons();
+    }
+
+    function toggleTheme() {
+      const newTheme = currentTheme === 'dark' ? 'coral-light' : 'dark';
+      applyTheme(newTheme);
+      // Trigger sparkle effect on toggle
+      confetti({ particleCount: 25, spread: 60, origin: { y: 0.1 } });
+    }
+
+    // --- 3. Language Handling ---
+    function changeLanguage(lang) {
+      currentLang = lang;
+      localStorage.setItem('utility_lang', lang);
+      document.getElementById('langSelect').value = lang;
+      updateUITexts();
+      renderAllCards();
+    }
+
+    function updateUITexts() {
+      const t = i18n[currentLang] || i18n.en;
+      document.getElementById('badgeText').textContent = t.badgeText;
+      document.getElementById('heroTitlePrefix').textContent = t.heroTitlePrefix;
+      document.getElementById('heroSubtitle').textContent = t.heroSubtitle;
+      document.getElementById('searchInput').placeholder = t.searchPlaceholder;
+      
+      document.getElementById('filter-all-label').textContent = t.filterAll;
+      document.getElementById('filter-web-label').textContent = t.filterWeb;
+      document.getElementById('filter-py-label').textContent = t.filterPy;
+      document.getElementById('filter-img-label').textContent = t.filterImg;
+      document.getElementById('filter-data-label').textContent = t.filterData;
+      document.getElementById('filter-measure-label').textContent = t.filterMeasure;
+
+      document.getElementById('webSectionTitle').textContent = t.webSectionTitle;
+      document.getElementById('webSectionDesc').textContent = t.webSectionDesc;
+      document.getElementById('pySectionTitle').textContent = t.pySectionTitle;
+      document.getElementById('pySectionDesc').textContent = t.pySectionDesc;
+
+      document.getElementById('emptyTitle').textContent = t.emptyTitle;
+      document.getElementById('emptyDesc').textContent = t.emptyDesc;
+      document.getElementById('footerText').textContent = t.footerText;
+    }
+
+    // --- 4. Dynamic Typewriter Effect ---
+    let typeIndex = 0;
+    let charIndex = 0;
+    let isDeleting = false;
+    function typeEffect() {
+      const t = i18n[currentLang] || i18n.en;
+      const keywords = t.typewriterKeywords || ["AI Dataset Pipelines"];
+      const currentKeyword = keywords[typeIndex % keywords.length];
+      const typewriterEl = document.getElementById('typewriterText');
+
+      if (isDeleting) {
+        typewriterEl.textContent = currentKeyword.substring(0, charIndex - 1);
+        charIndex--;
+      } else {
+        typewriterEl.textContent = currentKeyword.substring(0, charIndex + 1);
+        charIndex++;
+      }
+
+      let speed = isDeleting ? 40 : 90;
+      if (!isDeleting && charIndex === currentKeyword.length) {
+        speed = 2200; // Pause at end of word
+        isDeleting = true;
+      } else if (isDeleting && charIndex === 0) {
+        isDeleting = false;
+        typeIndex++;
+        speed = 400; // Pause before typing next
+      }
+
+      setTimeout(typeEffect, speed);
+    }
+
+    // --- 5. Interactive Particle Canvas ---
+    function initParticles() {
+      const canvas = document.getElementById('particleCanvas');
+      const ctx = canvas.getContext('2d');
+      let width, height, particles = [];
+      let mouse = { x: -1000, y: -1000 };
+
+      function resize() {
+        width = canvas.width = window.innerWidth;
+        height = canvas.height = window.innerHeight;
+      }
+      window.addEventListener('resize', resize);
+      resize();
+
+      window.addEventListener('mousemove', (e) => {
+        mouse.x = e.clientX;
+        mouse.y = e.clientY;
+      });
+
+      const particleCount = Math.min(Math.floor(window.innerWidth / 22), 50);
+      for (let i = 0; i < particleCount; i++) {
+        particles.push({
+          x: Math.random() * width,
+          y: Math.random() * height,
+          vx: (Math.random() - 0.5) * 0.6,
+          vy: (Math.random() - 0.5) * 0.6,
+          radius: Math.random() * 2 + 1.2
+        });
+      }
+
+      function draw() {
+        ctx.clearRect(0, 0, width, height);
+        const pColor = currentTheme === 'dark' ? 'rgba(99, 102, 241, 0.45)' : 'rgba(255, 87, 66, 0.55)';
+        const lColor = currentTheme === 'dark' ? 'rgba(56, 189, 248, 0.08)' : 'rgba(255, 120, 90, 0.12)';
+
+        particles.forEach((p, idx) => {
+          p.x += p.vx;
+          p.y += p.vy;
+          if (p.x < 0 || p.x > width) p.vx *= -1;
+          if (p.y < 0 || p.y > height) p.vy *= -1;
+
+          // Mouse Interaction
+          const dx = mouse.x - p.x;
+          const dy = mouse.y - p.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < 120) {
+            p.x -= dx * 0.015;
+            p.y -= dy * 0.015;
+          }
+
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+          ctx.fillStyle = pColor;
+          ctx.fill();
+
+          for (let j = idx + 1; j < particles.length; j++) {
+            const p2 = particles[j];
+            const d = Math.hypot(p.x - p2.x, p.y - p2.y);
+            if (d < 100) {
+              ctx.beginPath();
+              ctx.moveTo(p.x, p.y);
+              ctx.lineTo(p2.x, p2.y);
+              ctx.strokeStyle = lColor;
+              ctx.stroke();
+            }
+          }
+        });
+
+        requestAnimationFrame(draw);
+      }
+      draw();
+    }
+
+    // --- 6. Card Rendering with 3D Tilt & Specular Glare ---
+    function getLocalizedTool(tool) {
+      const trans = toolTranslations[tool.filename] && toolTranslations[tool.filename][currentLang];
+      return {
+        title: trans ? trans.title : tool.title,
+        desc: trans ? trans.desc : tool.desc,
+        category: tool.category,
+        tags: tool.tags || [],
+        icon: tool.icon || (tool.type === 'web' ? 'globe' : 'terminal'),
+        command: tool.command || `python ${tool.filename}`,
+        deps: tool.deps,
+        filename: tool.filename,
+        type: tool.type,
+        url: tool.url || tool.filename
+      };
+    }
+
+    function createWebCard(rawTool) {
+      const tool = getLocalizedTool(rawTool);
+      const t = i18n[currentLang] || i18n.en;
+      const tags = tool.tags.join(' ');
+
+      return `
+        <div class="tool-card glass-card rounded-2xl p-6 flex flex-col justify-between"
+             data-type="web" data-tags="${tags} ${tool.category} ${tool.title}">
+          <div>
+            <div class="flex items-start justify-between gap-4 mb-4">
+              <div class="w-12 h-12 rounded-xl p-2.5 flex items-center justify-center transition-transform hover:scale-110 shadow-sm"
+                   style="background: var(--code-bg); color: var(--accent); border: 1px solid var(--border-subtle);">
+                <i data-lucide="${tool.icon}" class="w-6 h-6"></i>
+              </div>
+              <span class="text-[11px] font-semibold px-2.5 py-1 rounded-full border"
+                    style="background: var(--code-bg); color: var(--accent); border-color: var(--border-subtle);">
+                ${tool.category}
+              </span>
+            </div>
+            <h3 class="text-lg font-bold transition-colors" style="color: var(--text-primary);">${tool.title}</h3>
+            <p class="text-xs mt-2 leading-relaxed" style="color: var(--text-secondary);">
+              ${tool.desc}
+            </p>
+          </div>
+          <div class="mt-6 pt-4 border-t flex items-center gap-2" style="border-color: var(--border-subtle);">
+            <button onclick="launchApp('${tool.url}', '${tool.title}')" 
+                    class="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-white text-xs font-semibold shadow-md transition-transform hover:scale-102 active:scale-95"
+                    style="background: var(--accent);">
+              <i data-lucide="play" class="w-3.5 h-3.5"></i> ${t.btnRun}
+            </button>
+            <a href="${tool.url}" target="_blank" 
+               class="p-2 rounded-lg glass-panel hover:scale-105 transition" title="${t.btnTab}">
+              <i data-lucide="external-link" class="w-4 h-4"></i>
+            </a>
+          </div>
+        </div>
+      `;
+    }
+
+    function createPythonCard(rawTool) {
+      const tool = getLocalizedTool(rawTool);
+      const t = i18n[currentLang] || i18n.en;
+      const tags = tool.tags.join(' ');
+      const deps = tool.deps && tool.deps !== '-' ? tool.deps : null;
+
+      return `
+        <div class="tool-card glass-card rounded-2xl p-6 flex flex-col justify-between"
+             data-type="python" data-tags="${tags} ${tool.category} ${tool.title}">
+          <div>
+            <div class="flex items-center justify-between gap-2 mb-3">
+              <span class="text-xs font-mono px-2.5 py-1 rounded-md border font-semibold"
+                    style="background: var(--code-bg); color: var(--accent); border-color: var(--border-subtle);">
+                ${tool.filename}
+              </span>
+              <span class="text-[11px]" style="color: var(--text-muted);">${tool.category}</span>
+            </div>
+            <h3 class="text-base font-bold" style="color: var(--text-primary);">${tool.title}</h3>
+            <p class="text-xs mt-2 leading-relaxed" style="color: var(--text-secondary);">
+              ${tool.desc}
+            </p>
+            <div class="mt-4 p-3 rounded-xl border flex items-center justify-between gap-2 shadow-inner"
+                 style="background: var(--code-bg); border-color: var(--border-subtle);">
+              <div class="text-[11px] font-mono truncate" style="color: var(--text-primary);">
+                <code>${tool.command}</code>
+              </div>
+              <button onclick="copyToClipboard('${tool.command}', event)" class="p-1.5 rounded-lg hover:scale-110 active:scale-95 transition"
+                      style="background: var(--bg-panel); color: var(--accent);" title="Copy Command">
+                <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+              </button>
+            </div>
+          </div>
+          <div class="mt-4 pt-3 border-t flex items-center justify-between text-xs" style="border-color: var(--border-subtle); color: var(--text-muted);">
+            <div class="flex items-center gap-1.5">
+              <i data-lucide="cpu" class="w-3.5 h-3.5" style="color: var(--accent);"></i>
+              <span>${t.depsLabel}: ${deps ? deps : 'Standard Library'}</span>
+            </div>
+            <a href="https://github.com/Corneliox/Utility/blob/main/${tool.filename}" target="_blank" class="hover:underline flex items-center gap-1" style="color: var(--accent);">
+              ${t.sourceLabel} <i data-lucide="code" class="w-3 h-3"></i>
+            </a>
+          </div>
+        </div>
+      `;
+    }
+
+    function setup3DTilt() {
+      const cards = document.querySelectorAll('.glass-card');
+      cards.forEach(card => {
+        card.addEventListener('mousemove', (e) => {
+          const rect = card.getBoundingClientRect();
+          const x = e.clientX - rect.left;
+          const y = e.clientY - rect.top;
+          const centerX = rect.width / 2;
+          const centerY = rect.height / 2;
+          const rotateX = (centerY - y) / 18;
+          const rotateY = (x - centerX) / 18;
+          card.style.transform = `perspective(800px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.015, 1.015, 1.015)`;
+        });
+
+        card.addEventListener('mouseleave', () => {
+          card.style.transform = 'perspective(800px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)';
+        });
+      });
+    }
+
+    // --- 7. Toast & Confetti ---
+    function copyToClipboard(text, e) {
+      const t = i18n[currentLang] || i18n.en;
+      navigator.clipboard.writeText(text).then(() => {
+        showToast(t.copied);
+        // Confetti burst from click position
+        if (e) {
+          const rect = e.target.getBoundingClientRect();
+          confetti({
+            particleCount: 20,
+            spread: 45,
+            origin: { x: rect.left / window.innerWidth, y: rect.top / window.innerHeight }
+          });
+        }
+      }).catch(() => {
+        showToast(t.copyFail);
+      });
+    }
+
     function showToast(msg) {
       const toast = document.getElementById('toast');
-      const toastMsg = document.getElementById('toastMsg');
-      toastMsg.textContent = msg;
+      document.getElementById('toastMsg').textContent = msg;
       toast.classList.remove('translate-y-20', 'opacity-0');
       setTimeout(() => {
         toast.classList.add('translate-y-20', 'opacity-0');
       }, 2500);
     }
 
-    function copyToClipboard(text) {
-      navigator.clipboard.writeText(text).then(() => {
-        showToast('Perintah disalin: ' + text);
-      }).catch(err => {
-        showToast('Gagal menyalin perintah');
-      });
-    }
-
-    // Modal Launcher
+    // --- 8. Modal Viewer ---
     function launchApp(url, title) {
       const modal = document.getElementById('appModal');
-      const iframe = document.getElementById('modalIframe');
-      const titleEl = document.getElementById('modalAppTitle');
-      const extLink = document.getElementById('modalExternalLink');
-
-      titleEl.textContent = title;
-      extLink.href = url;
-      iframe.src = url;
+      document.getElementById('modalAppTitle').textContent = title;
+      document.getElementById('modalExternalLink').href = url;
+      document.getElementById('modalIframe').src = url;
 
       modal.classList.remove('hidden');
       modal.classList.add('flex');
@@ -289,11 +900,9 @@
 
     function closeAppModal() {
       const modal = document.getElementById('appModal');
-      const iframe = document.getElementById('modalIframe');
-      
       modal.classList.add('hidden');
       modal.classList.remove('flex');
-      iframe.src = 'about:blank';
+      document.getElementById('modalIframe').src = 'about:blank';
       document.body.style.overflow = 'auto';
     }
 
@@ -306,95 +915,20 @@
       if (e.key === 'Escape') closeAppModal();
     });
 
-    // Render Web Card HTML
-    function createWebCard(tool) {
-      const iconName = tool.icon || 'globe';
-      const tags = (tool.tags || []).join(' ');
-      return `
-        <div class="tool-card group glass-panel rounded-2xl p-6 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 glow-hover"
-             data-type="web" data-tags="${tags} ${tool.category} ${tool.title}">
-          <div>
-            <div class="flex items-start justify-between gap-4 mb-4">
-              <div class="w-12 h-12 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center group-hover:scale-110 transition-transform">
-                <i data-lucide="${iconName}" class="w-6 h-6"></i>
-              </div>
-              <span class="text-[11px] font-semibold px-2.5 py-1 rounded-full bg-indigo-500/10 text-indigo-300 border border-indigo-500/20">
-                ${tool.category || 'Web App'}
-              </span>
-            </div>
-            <h3 class="text-lg font-bold text-white group-hover:text-indigo-400 transition-colors">${tool.title}</h3>
-            <p class="text-xs text-slate-400 mt-2 leading-relaxed">
-              ${tool.desc}
-            </p>
-          </div>
-          <div class="mt-6 pt-4 border-t border-slate-800/80 flex items-center gap-2">
-            <button onclick="launchApp('${tool.url}', '${tool.title}')" 
-                    class="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold transition shadow-md shadow-indigo-600/20">
-              <i data-lucide="play" class="w-3.5 h-3.5"></i> Jalankan di Sini
-            </button>
-            <a href="${tool.url}" target="_blank" 
-               class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 transition" title="Buka di tab baru">
-              <i data-lucide="external-link" class="w-4 h-4"></i>
-            </a>
-          </div>
-        </div>
-      `;
-    }
-
-    // Render Python Card HTML
-    function createPythonCard(tool) {
-      const iconName = tool.icon || 'terminal';
-      const tags = (tool.tags || []).join(' ');
-      const command = tool.command || `python ${tool.filename}`;
-      const deps = tool.deps && tool.deps !== '-' ? tool.deps : null;
-
-      return `
-        <div class="tool-card glass-panel rounded-2xl p-6 flex flex-col justify-between transition-all duration-300 hover:border-slate-700"
-             data-type="python" data-tags="${tags} ${tool.category} ${tool.title}">
-          <div>
-            <div class="flex items-center justify-between gap-2 mb-3">
-              <span class="text-xs font-mono text-amber-400 bg-amber-400/10 px-2.5 py-1 rounded-md border border-amber-400/20">
-                ${tool.filename}
-              </span>
-              <span class="text-[11px] text-slate-400">${tool.category || 'Python Script'}</span>
-            </div>
-            <h3 class="text-base font-bold text-white">${tool.title}</h3>
-            <p class="text-xs text-slate-400 mt-2 leading-relaxed">
-              ${tool.desc}
-            </p>
-            <div class="mt-4 p-3 rounded-lg bg-slate-900/90 border border-slate-800 flex items-center justify-between gap-2">
-              <div class="text-[11px] font-mono text-indigo-300 truncate">
-                <code>${command}</code>
-              </div>
-              <button onclick="copyToClipboard('${command}')" class="p-1.5 rounded-md hover:bg-slate-800 text-slate-400 hover:text-slate-200 transition" title="Salin perintah">
-                <i data-lucide="copy" class="w-3.5 h-3.5"></i>
-              </button>
-            </div>
-          </div>
-          <div class="mt-4 pt-3 border-t border-slate-800/60 flex items-center justify-between text-xs text-slate-500">
-            <div class="flex items-center gap-1.5">
-              <i data-lucide="cpu" class="w-3.5 h-3.5 text-emerald-400"></i>
-              <span>Deps: ${deps ? deps : 'Standard Library'}</span>
-            </div>
-            <a href="https://github.com/Corneliox/Utility/blob/main/${tool.filename}" target="_blank" class="hover:text-indigo-400 flex items-center gap-1">
-              Source <i data-lucide="code" class="w-3 h-3"></i>
-            </a>
-          </div>
-        </div>
-      `;
-    }
-
-    // Filter & Search Logic
+    // --- 9. Search & Filter Logic ---
     function applyFilterAndSearch() {
       const searchInput = document.getElementById('searchInput');
       const query = searchInput.value.toLowerCase().trim();
       const toolCards = document.querySelectorAll('.tool-card');
+      const clearBtn = document.getElementById('clearSearch');
       const webSection = document.getElementById('web-section');
       const pySection = document.getElementById('python-section');
       const emptyState = document.getElementById('emptyState');
 
-      let visibleWeb = 0;
-      let visiblePy = 0;
+      if (query.length > 0) clearBtn.classList.remove('hidden');
+      else clearBtn.classList.add('hidden');
+
+      let visibleWeb = 0, visiblePy = 0;
 
       toolCards.forEach(card => {
         const type = card.getAttribute('data-type');
@@ -404,19 +938,12 @@
         const matchesSearch = query === '' || tags.includes(query) || textContent.includes(query);
         let matchesFilter = false;
 
-        if (currentFilter === 'all') {
-          matchesFilter = true;
-        } else if (currentFilter === 'web' && type === 'web') {
-          matchesFilter = true;
-        } else if (currentFilter === 'python' && type === 'python') {
-          matchesFilter = true;
-        } else if (currentFilter === 'image' && tags.includes('image')) {
-          matchesFilter = true;
-        } else if (currentFilter === 'dataset' && (tags.includes('dataset') || tags.includes('lora') || tags.includes('ai'))) {
-          matchesFilter = true;
-        } else if (currentFilter === 'measure' && (tags.includes('measure') || tags.includes('px2mm') || tags.includes('scale'))) {
-          matchesFilter = true;
-        }
+        if (currentFilter === 'all') matchesFilter = true;
+        else if (currentFilter === 'web' && type === 'web') matchesFilter = true;
+        else if (currentFilter === 'python' && type === 'python') matchesFilter = true;
+        else if (currentFilter === 'image' && (tags.includes('image') || tags.includes('gambar') || tags.includes('crop') || tags.includes('upscale'))) matchesFilter = true;
+        else if (currentFilter === 'dataset' && (tags.includes('dataset') || tags.includes('lora') || tags.includes('ai') || tags.includes('caption'))) matchesFilter = true;
+        else if (currentFilter === 'measure' && (tags.includes('measure') || tags.includes('px2mm') || tags.includes('scale') || tags.includes('ukur'))) matchesFilter = true;
 
         if (matchesSearch && matchesFilter) {
           card.classList.remove('hidden');
@@ -432,63 +959,60 @@
       emptyState.style.display = (visibleWeb === 0 && visiblePy === 0) ? 'block' : 'none';
     }
 
-    // Load Data from tools.json
-    async function loadCatalog() {
-      try {
-        const res = await fetch('./tools.json');
-        if (!res.ok) throw new Error('Network error loading tools.json');
-        const data = await res.json();
-        renderTools(data);
-      } catch (err) {
-        console.warn('Could not fetch tools.json dynamically, fallback mode active:', err);
-      }
+    function clearSearchInput() {
+      document.getElementById('searchInput').value = '';
+      applyFilterAndSearch();
     }
 
-    function renderTools(data) {
-      allTools = data.tools || [];
+    // --- 10. Render Cards ---
+    function renderAllCards() {
       const webGrid = document.getElementById('webAppsGrid');
       const pyGrid = document.getElementById('pythonScriptsGrid');
 
-      // Update counters
-      document.getElementById('count-all').textContent = data.total_tools || allTools.length;
-      document.getElementById('count-web').textContent = data.web_count || allTools.filter(t => t.type === 'web').length;
-      document.getElementById('count-py').textContent = data.python_count || allTools.filter(t => t.type === 'python').length;
-
-      // Render cards
       webGrid.innerHTML = allTools.filter(t => t.type === 'web').map(createWebCard).join('');
       pyGrid.innerHTML = allTools.filter(t => t.type === 'python').map(createPythonCard).join('');
 
-      // Refresh icons
-      lucide.createIcons();
+      document.getElementById('count-all').textContent = allTools.length;
+      document.getElementById('count-web').textContent = allTools.filter(t => t.type === 'web').length;
+      document.getElementById('count-py').textContent = allTools.filter(t => t.type === 'python').length;
 
-      // Bind events
-      setupEvents();
+      lucide.createIcons();
+      setup3DTilt();
+      applyFilterAndSearch();
     }
 
-    function setupEvents() {
-      const searchInput = document.getElementById('searchInput');
+    // --- 11. Initializer ---
+    async function initCatalog() {
+      try {
+        const res = await fetch('./tools.json');
+        if (!res.ok) throw new Error('Cannot fetch tools.json');
+        const data = await res.json();
+        allTools = data.tools || [];
+      } catch (err) {
+        console.warn('Fallback loading tool list:', err);
+      }
+
+      applyTheme(currentTheme);
+      changeLanguage(currentLang);
+
+      // Search & Filter Listeners
+      document.getElementById('searchInput').addEventListener('input', applyFilterAndSearch);
+      
       const filterButtons = document.querySelectorAll('.filter-btn');
-
-      searchInput.addEventListener('input', applyFilterAndSearch);
-
       filterButtons.forEach(btn => {
         btn.addEventListener('click', () => {
-          filterButtons.forEach(b => {
-            b.classList.remove('bg-indigo-600', 'text-white', 'shadow-md', 'shadow-indigo-600/30');
-            b.classList.add('bg-slate-900', 'text-slate-300');
-          });
-
-          btn.classList.remove('bg-slate-900', 'text-slate-300');
-          btn.classList.add('bg-indigo-600', 'text-white', 'shadow-md', 'shadow-indigo-600/30');
-
+          filterButtons.forEach(b => b.classList.remove('btn-active'));
+          btn.classList.add('btn-active');
           currentFilter = btn.getAttribute('data-filter');
           applyFilterAndSearch();
         });
       });
+
+      initParticles();
+      typeEffect();
     }
 
-    // Initialize
-    loadCatalog();
+    window.addEventListener('DOMContentLoaded', initCatalog);
   </script>
 </body>
 </html>
