@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alat Pemotong Gambar Sama Rata</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Custom scrollbar for preview area */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9; 
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1; 
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; 
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen p-4 md:p-8 flex items-center justify-center">
+
+    <div class="max-w-2xl w-full bg-white rounded-2xl shadow-xl overflow-hidden">
+        <div class="bg-blue-600 p-6 text-white text-center">
+            <h1 class="text-2xl font-bold">Pemotong Gambar Otomatis</h1>
+            <p class="text-blue-100 text-sm mt-1">Bagi gambar menjadi beberapa bagian sama rata</p>
+        </div>
+
+        <div class="p-6 md:p-8 space-y-6">
+            
+            <!-- Area Notifikasi Error -->
+            <div id="error-message" class="hidden bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-md text-sm transition-all">
+                <p id="error-text">Terjadi kesalahan.</p>
+            </div>
+
+            <!-- Area Upload -->
+            <div>
+                <label class="block text-sm font-semibold mb-2">1. Pilih Gambar (Bisa lebih dari 1 untuk perbandingan)</label>
+                <input type="file" id="fileInput" accept="image/*" multiple
+                    class="block w-full text-sm text-slate-500
+                    file:mr-4 file:py-2 file:px-4
+                    file:rounded-full file:border-0
+                    file:text-sm file:font-semibold
+                    file:bg-blue-50 file:text-blue-700
+                    hover:file:bg-blue-100
+                    border border-slate-200 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition cursor-pointer">
+            </div>
+            
+            <!-- Area Thumbnail Gambar Terpilih -->
+            <div id="thumbnails-container" class="hidden flex flex-wrap gap-2 mt-4 p-3 bg-slate-50 border border-slate-200 rounded-lg">
+                <!-- Thumbnails will be injected here -->
+            </div>
+            
+            <!-- Area Pengaturan Grid -->
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-semibold mb-2" title="Potongan dari kiri ke kanan">2. Jumlah Kolom (Horizontal)</label>
+                    <input type="number" id="colsInput" min="1" value="2" 
+                        class="w-full border border-slate-300 rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-center text-lg font-medium">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold mb-2" title="Potongan dari atas ke bawah">3. Jumlah Baris (Vertikal)</label>
+                    <input type="number" id="rowsInput" min="1" value="2" 
+                        class="w-full border border-slate-300 rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-center text-lg font-medium">
+                </div>
+            </div>
+
+            <!-- Tombol Aksi -->
+            <button onclick="sliceImage()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-xl transition duration-200 transform hover:-translate-y-0.5 shadow-md active:translate-y-0">
+                Potong Gambar Sekarang
+            </button>
+
+            <!-- Area Preview -->
+            <div id="preview-container" class="hidden mt-8 pt-8 border-t border-slate-200">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-bold text-slate-800">Hasil Potongan</h3>
+                    <span id="slice-info" class="bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1 rounded-full">
+                        Potongan 1 dari ?
+                    </span>
+                </div>
+                
+                <div class="bg-slate-50 border-2 border-dashed border-slate-300 rounded-xl p-4 mb-4">
+                    <div id="comparison-container" class="custom-scrollbar max-w-full max-h-[70vh] overflow-auto flex flex-col gap-6 items-center rounded-lg shadow-inner p-4 bg-slate-100/50 w-full">
+                        <!-- Multiple slices will be injected here for comparison -->
+                    </div>
+                </div>
+                
+                <!-- Navigasi -->
+                <div class="flex justify-between items-center gap-4">
+                    <button id="prevBtn" onclick="prevSlice()" 
+                        class="flex-1 bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 font-medium py-2 px-4 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white flex items-center justify-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+                        </svg>
+                        Sebelumnya
+                    </button>
+                    
+                    <button id="nextBtn" onclick="nextSlice()" 
+                        class="flex-1 bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 font-medium py-2 px-4 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white flex items-center justify-center gap-2">
+                        Selanjutnya
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // State variables
+        let uploadedImagesData = []; // Array to hold objects: { name, imgElement }
+        let slicesByPosition = [];   // Array of arrays: [ slice0_array, slice1_array, ... ]
+        let currentIndex = 0;
+        let isImageLoaded = false;
+
+        // Custom Error/Message display function
+        function showMessage(message, isError = true) {
+            const errorDiv = document.getElementById('error-message');
+            const errorText = document.getElementById('error-text');
+            
+            if (isError) {
+                errorDiv.classList.replace('bg-green-100', 'bg-red-100');
+                errorDiv.classList.replace('border-green-500', 'border-red-500');
+                errorDiv.classList.replace('text-green-700', 'text-red-700');
+            } else {
+                errorDiv.classList.replace('bg-red-100', 'bg-green-100');
+                errorDiv.classList.replace('border-red-500', 'border-green-500');
+                errorDiv.classList.replace('text-red-700', 'text-green-700');
+            }
+            
+            errorText.innerText = message;
+            errorDiv.classList.remove('hidden');
+            
+            // Auto hide after 4 seconds
+            setTimeout(() => {
+                errorDiv.classList.add('hidden');
+            }, 4000);
+        }
+
+        // Handle File Upload (Multiple)
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            const files = Array.from(e.target.files);
+            if (files.length === 0) return;
+            
+            uploadedImagesData = [];
+            document.getElementById('preview-container').classList.add('hidden');
+            slicesByPosition = [];
+            
+            const thumbnailsContainer = document.getElementById('thumbnails-container');
+            thumbnailsContainer.innerHTML = ''; // Clear old thumbnails
+            thumbnailsContainer.classList.remove('hidden');
+
+            let loadedCount = 0;
+            let hasError = false;
+
+            files.forEach((file) => {
+                if (!file.type.match('image.*')) {
+                    hasError = true;
+                    showMessage(`File "${file.name}" bukan gambar!`);
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const img = new Image();
+                    img.onload = function() {
+                        uploadedImagesData.push({ name: file.name, img: img });
+                        loadedCount++;
+                        
+                        // Menambahkan UI Thumbnail
+                        const thumbDiv = document.createElement('div');
+                        thumbDiv.className = 'relative group w-16 h-16 rounded overflow-hidden border border-slate-300 shadow-sm';
+                        thumbDiv.innerHTML = `<img src="${event.target.result}" class="w-full h-full object-cover" title="${file.name}">`;
+                        thumbnailsContainer.appendChild(thumbDiv);
+
+                        // Cek apakah semua gambar valid telah dimuat ke memori
+                        if (loadedCount === files.length && !hasError) {
+                            isImageLoaded = true;
+                            showMessage(`${loadedCount} Gambar berhasil dimuat! Silakan potong.`, false);
+                        }
+                    };
+                    img.src = event.target.result;
+                }
+                reader.readAsDataURL(file);
+            });
+        });
+
+        // Main logic to slice image using Canvas
+        function sliceImage() {
+            if (!isImageLoaded || uploadedImagesData.length === 0) {
+                showMessage("Silakan pilih/upload gambar terlebih dahulu!");
+                return;
+            }
+
+            const cols = parseInt(document.getElementById('colsInput').value);
+            const rows = parseInt(document.getElementById('rowsInput').value);
+
+            if (isNaN(cols) || isNaN(rows) || cols <= 0 || rows <= 0) {
+                showMessage("Jumlah kolom dan baris harus berupa angka minimal 1.");
+                return;
+            }
+
+            const totalSlices = cols * rows;
+            
+            // Inisialisasi array kosong untuk tiap posisi index potongan
+            slicesByPosition = Array.from({ length: totalSlices }, () => []); 
+            currentIndex = 0;
+
+            // Proses pemotongan untuk setiap gambar yang diupload
+            uploadedImagesData.forEach((item) => {
+                const img = item.img;
+                const sliceWidth = img.width / cols;
+                const sliceHeight = img.height / rows;
+                
+                let sliceIdx = 0;
+                // Loop dari Atas ke Bawah, Kiri ke Kanan
+                for (let y = 0; y < rows; y++) {
+                    for (let x = 0; x < cols; x++) {
+                        const canvas = document.createElement('canvas');
+                        canvas.width = sliceWidth;
+                        canvas.height = sliceHeight;
+                        const ctx = canvas.getContext('2d');
+                        
+                        ctx.drawImage(
+                            img, 
+                            x * sliceWidth, y * sliceHeight, sliceWidth, sliceHeight, // Sumber
+                            0, 0, sliceWidth, sliceHeight                             // Tujuan
+                        );
+                        
+                        // Simpan ke array sesuai index posisi potongannya
+                        slicesByPosition[sliceIdx].push({
+                            name: item.name,
+                            dataUrl: canvas.toDataURL('image/png')
+                        });
+                        
+                        sliceIdx++;
+                    }
+                }
+            });
+
+            if(slicesByPosition.length > 0) {
+                document.getElementById('preview-container').classList.remove('hidden');
+                showSlice(0);
+            }
+        }
+
+        // Display specific slice and update UI
+        function showSlice(index) {
+            if (slicesByPosition.length === 0) return;
+            
+            currentIndex = index;
+            const container = document.getElementById('comparison-container');
+            container.innerHTML = ''; // Hapus tampilan sebelumnya
+            
+            const currentSlices = slicesByPosition[currentIndex];
+            
+            currentSlices.forEach((sliceObj) => {
+                // Wrapper untuk masing-masing potongan gambar yang dibandingkan
+                const wrapper = document.createElement('div');
+                wrapper.className = 'flex flex-col items-center bg-white p-4 rounded-lg border border-slate-200 shadow-sm w-full';
+                
+                // Label Nama File
+                const label = document.createElement('span');
+                label.className = 'text-sm font-bold text-slate-600 mb-3 bg-slate-100 px-4 py-1.5 rounded-md w-full text-center truncate shadow-sm';
+                label.innerText = sliceObj.name;
+                label.title = sliceObj.name;
+                
+                // Gambar Potongan
+                const img = document.createElement('img');
+                img.src = sliceObj.dataUrl;
+                img.className = 'max-w-full h-auto block rounded border border-slate-100';
+                
+                wrapper.appendChild(label);
+                wrapper.appendChild(img);
+                container.appendChild(wrapper);
+            });
+
+            document.getElementById('slice-info').innerText = `Potongan ${currentIndex + 1} dari ${slicesByPosition.length}`;
+
+            // Update status tombol
+            document.getElementById('prevBtn').disabled = currentIndex === 0;
+            document.getElementById('nextBtn').disabled = currentIndex === slicesByPosition.length - 1;
+        }
+
+        // Navigation controls
+        function prevSlice() {
+            if (currentIndex > 0) {
+                showSlice(currentIndex - 1);
+            }
+        }
+
+        function nextSlice() {
+            if (currentIndex < slicesByPosition.length - 1) {
+                showSlice(currentIndex + 1);
+            }
+        }
+    </script>
+</body>
+</html>

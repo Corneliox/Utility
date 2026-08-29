@@ -1,0 +1,309 @@
+{
+  "version": "2.0.0",
+  "generated_at": null,
+  "total_tools": 16,
+  "web_count": 6,
+  "python_count": 10,
+  "tools": [
+    {
+      "title": "Dataset Folder & Pair Validator",
+      "category": "AI & Dataset Prep",
+      "desc": "Memindai seluruh subfolder dataset secara rekursif, memvalidasi pasangan file gambar (.jpg, .png, .webp) dengan berkas anotasi .txt, dan membuat laporan scan.",
+      "deps": "Pillow (opsional)",
+      "command": "python 1_rawval_imgjpg_folder.py",
+      "icon": "check-circle-2",
+      "tags": [
+        "dataset",
+        "validator",
+        "pairs",
+        "raw",
+        "image",
+        "text",
+        "ai",
+        "lora",
+        "python"
+      ],
+      "filename": "1_rawval_imgjpg_folder.py",
+      "type": "python"
+    },
+    {
+      "title": "Dataset File Extractor & Merger",
+      "category": "File & Text Tool",
+      "desc": "Skrip automasi untuk mengekstrak dan menggabungkan kumpulan berkas dataset dari berbagai subfolder.",
+      "deps": "-",
+      "command": "python 2_extractmergefile.py",
+      "icon": "archive",
+      "tags": [
+        "extract",
+        "merge",
+        "dataset",
+        "files",
+        "python"
+      ],
+      "filename": "2_extractmergefile.py",
+      "type": "python"
+    },
+    {
+      "title": "Image-Text Pair Completeness Check",
+      "category": "AI & Dataset Prep",
+      "desc": "Memvalidasi kelengkapan berkas gambar dan berkas teks pendamping agar tidak ada gambar tanpa anotasi atau teks tanpa gambar.",
+      "deps": "-",
+      "command": "python 3_img_txt_validate.py",
+      "icon": "file-check",
+      "tags": [
+        "validate",
+        "image",
+        "text",
+        "caption",
+        "pairs",
+        "dataset",
+        "python"
+      ],
+      "filename": "3_img_txt_validate.py",
+      "type": "python"
+    },
+    {
+      "title": "Corrupt Image Detector & Anomaly Scanner",
+      "category": "AI & Dataset Prep",
+      "desc": "Membuka dan memverifikasi integritas bitstream berkas citra untuk memastikan tidak ada gambar rusak atau header corrupt.",
+      "deps": "Pillow",
+      "command": "python 4_validatedamaged.py",
+      "icon": "alert-triangle",
+      "tags": [
+        "damaged",
+        "image",
+        "validator",
+        "corrupt",
+        "file",
+        "check",
+        "dataset",
+        "python"
+      ],
+      "filename": "4_validatedamaged.py",
+      "type": "python"
+    },
+    {
+      "title": "Image Upscaler with Alpha Channel (RGBA)",
+      "category": "Image Processing",
+      "desc": "Penskalaan gambar beresolusi minimal 256x256 px dengan penanganan khusus kanal transparansi RGBA.",
+      "deps": "Pillow",
+      "command": "python 5_1_Upscalermin256RGBA.py",
+      "icon": "layers",
+      "tags": [
+        "upscaler",
+        "rgba",
+        "transparent",
+        "image",
+        "pillow",
+        "python"
+      ],
+      "filename": "5_1_Upscalermin256RGBA.py",
+      "type": "python"
+    },
+    {
+      "title": "Aspect-Ratio Aware Image Upscaler",
+      "category": "Image Processing",
+      "desc": "Memindai dan melakukan upscale pada gambar yang dimensinya di bawah 256x256 px dengan filter Lanczos berkualitas tinggi.",
+      "deps": "Pillow",
+      "command": "python 5_Upscalermin256.py",
+      "icon": "image-plus",
+      "tags": [
+        "upscaler",
+        "image",
+        "resize",
+        "pillow",
+        "min",
+        "dimension",
+        "lora",
+        "ai",
+        "dataset",
+        "python"
+      ],
+      "filename": "5_Upscalermin256.py",
+      "type": "python"
+    },
+    {
+      "title": "Dataset Caption Typo Fixer & Translator",
+      "category": "NLP & Translation",
+      "desc": "Koreksi otomatis saltik (typo), perlindungan tag onomatope/efek suara komik, dan penerjemahan batch caption dataset ke Bahasa Inggris.",
+      "deps": "deep-translator",
+      "command": "python 6_caption_bhs_to_eng.py",
+      "icon": "languages",
+      "tags": [
+        "caption",
+        "translate",
+        "indonesian",
+        "english",
+        "typo",
+        "fix",
+        "ai",
+        "lora",
+        "dataset",
+        "python"
+      ],
+      "filename": "6_caption_bhs_to_eng.py",
+      "type": "python"
+    },
+    {
+      "title": "Pemotong Gambar Sama Rata",
+      "category": "Image Processing",
+      "desc": "Membagi satu atau beberapa gambar menjadi potongan sama rata (grid) untuk perbandingan detail, aset komik, atau kurasi dataset AI.",
+      "icon": "crop",
+      "tags": [
+        "crop",
+        "image",
+        "slice",
+        "splitter",
+        "perbandingan",
+        "visual",
+        "web"
+      ],
+      "filename": "Crop_image_pembanding.html",
+      "type": "web",
+      "url": "Crop_image_pembanding.html"
+    },
+    {
+      "title": "Folder Tree Browser & Generator",
+      "category": "File & Directory",
+      "desc": "Eksplorasi folder lokal secara interaktif via browser, seleksi berkas tertentu, dan generate pohon struktur folder ke format Markdown / Plain Text.",
+      "icon": "folder-tree",
+      "tags": [
+        "folder",
+        "tree",
+        "directory",
+        "generator",
+        "text",
+        "docs",
+        "web"
+      ],
+      "filename": "folder2tree.html",
+      "type": "web",
+      "url": "folder2tree.html"
+    },
+    {
+      "title": "CLI Directory Tree Generator",
+      "category": "File & Text Tool",
+      "desc": "Menghasilkan representasi visual struktur folder ke terminal atau file teks markdown secara cepat.",
+      "deps": "-",
+      "command": "python folder2tree.py",
+      "icon": "folder-git",
+      "tags": [
+        "tree",
+        "folder",
+        "cli",
+        "markdown",
+        "python"
+      ],
+      "filename": "folder2tree.py",
+      "type": "python"
+    },
+    {
+      "title": "Python Environment & Library Scanner",
+      "category": "Developer Tool",
+      "desc": "Aplikasi GUI desktop untuk memindai paket-paket Python yang terpasang dan mengekspor daftar dependensi lingkungan kerja.",
+      "deps": "-",
+      "command": "python library_scanner_app.py",
+      "icon": "cpu",
+      "tags": [
+        "library",
+        "scanner",
+        "dependencies",
+        "environment",
+        "inspector",
+        "python"
+      ],
+      "filename": "library_scanner_app.py",
+      "type": "python"
+    },
+    {
+      "title": "Batch Text Merger Utility",
+      "category": "File & Text Tool",
+      "desc": "Menggabungkan banyak berkas teks (.txt) dari satu direktori menjadi satu berkas terkonsolidasi.",
+      "deps": "-",
+      "command": "python mergetxt_file.py",
+      "icon": "files",
+      "tags": [
+        "merge",
+        "text",
+        "files",
+        "batch",
+        "python"
+      ],
+      "filename": "mergetxt_file.py",
+      "type": "python"
+    },
+    {
+      "title": "Mermaid Flowchart Studio",
+      "category": "Diagram & Studio",
+      "desc": "Editor visual canggih untuk diagram alir (Flowchart Mermaid) dengan live canvas pan/zoom, template preset, ekspor SVG/PNG, dan kustomisasi style.",
+      "icon": "git-fork",
+      "tags": [
+        "mermaid",
+        "flowchart",
+        "diagram",
+        "visual",
+        "docs",
+        "web"
+      ],
+      "filename": "mermaid_flowchart_app.html",
+      "type": "web",
+      "url": "mermaid_flowchart_app.html"
+    },
+    {
+      "title": "Pengukur Garis Presisi (px2mm)",
+      "category": "Optical & Measurement",
+      "desc": "Kalibrasi pengukuran garis presisi pada citra visual (OCT) dengan rasio standar 200 px = 1 mm, pengukuran multi-titik, dan pencatatan riwayat.",
+      "icon": "ruler",
+      "tags": [
+        "px2mm",
+        "measure",
+        "measurement",
+        "oct",
+        "distance",
+        "ruler",
+        "optical",
+        "web"
+      ],
+      "filename": "px2mm.html",
+      "type": "web",
+      "url": "px2mm.html"
+    },
+    {
+      "title": "Custom Style QR Generator",
+      "category": "Design & Utility",
+      "desc": "Generator QR Code modern dengan styling warna bebas, opsi background transparan, pemilihan bentuk modul (dots/rounded), dan ekspor resolusi tinggi.",
+      "icon": "qr-code",
+      "tags": [
+        "qr",
+        "code",
+        "generator",
+        "custom",
+        "style",
+        "image",
+        "web"
+      ],
+      "filename": "qrCode.html",
+      "type": "web",
+      "url": "qrCode.html"
+    },
+    {
+      "title": "Skala Sumbu X & Y Presisi",
+      "category": "Optical & Measurement",
+      "desc": "Pengukuran gambar dengan panduan skala sumbu X dan Y simultan, kontrol ukuran font label, serta penghitungan dimensi otomatis dalam milimeter.",
+      "icon": "maximize",
+      "tags": [
+        "scalepx2mm",
+        "measure",
+        "measurement",
+        "scale",
+        "xy",
+        "font",
+        "ruler",
+        "web"
+      ],
+      "filename": "scalepx2mm.html",
+      "type": "web",
+      "url": "scalepx2mm.html"
+    }
+  ]
+}

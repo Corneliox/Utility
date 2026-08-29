@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pengukur Garis Presisi OCT (200 px = 1 mm)</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f4f9; color: #333; }
+    .toolbar { 
+      display: flex; 
+      gap: 15px; 
+      align-items: center; 
+      background: #fff; 
+      padding: 12px 20px; 
+      border-radius: 8px; 
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      margin-bottom: 15px; 
+      flex-wrap: wrap; 
+    }
+    .canvas-container { 
+      position: relative; 
+      overflow: auto; 
+      background: #222; 
+      border-radius: 8px; 
+      max-height: 80vh; 
+      border: 1px solid #ccc;
+    }
+    canvas { display: block; cursor: crosshair; }
+    button, input { 
+      padding: 6px 12px; 
+      font-size: 14px; 
+      border: 1px solid #ccc; 
+      border-radius: 4px; 
+    }
+    button { background-color: #007bff; color: white; cursor: pointer; border: none; }
+    button:hover { background-color: #0056b3; }
+    button.secondary { background-color: #6c757d; }
+    button.secondary:hover { background-color: #5a6268; }
+    button.danger { background-color: #dc3545; }
+    button.danger:hover { background-color: #bd2130; }
+    .info-panel { 
+      margin-top: 15px; 
+      padding: 12px; 
+      background: #e9ecef; 
+      border-radius: 6px; 
+      font-weight: bold; 
+      font-size: 16px; 
+    }
+  </style>
+</head>
+<body>
+
+  <div class="toolbar">
+    <input type="file" id="imageLoader" accept="image/*">
+    <label>Warna: <input type="color" id="lineColor" value="#00ff00"></label>
+    <label>Ketebalan: <input type="number" id="lineWidth" value="2" min="1" max="10" style="width: 50px;"></label>
+    <button class="secondary" id="undoBtn">Undo</button>
+    <button class="danger" id="clearBtn">Reset Garis</button>
+    <button id="saveBtn">Simpan Gambar</button>
+  </div>
+
+  <div class="canvas-container">
+    <canvas id="imageCanvas"></canvas>
+  </div>
+
+  <div class="info-panel" id="measureInfo">
+    Status: Silakan muat gambar atau Paste (Ctrl+V). Klik titik pertama untuk mulai.
+  </div>
+
+  <script>
+    const canvas = document.getElementById('imageCanvas');
+    const ctx = canvas.getContext('2d');
+    const imageLoader = document.getElementById('imageLoader');
+    const lineColor = document.getElementById('lineColor');
+    const lineWidth = document.getElementById('lineWidth');
+    const undoBtn = document.getElementById('undoBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const saveBtn = document.getElementById('saveBtn');
+    const measureInfo = document.getElementById('measureInfo');
+
+    let img = new Image();
+    let history = [];
+    let startPoint = null;
+    let isSelecting = false;
+    const SCALE_PX_PER_MM = 200;
+
+    // Load Image via File Input
+    imageLoader.addEventListener('change', (e) => {
+      if (e.target.files[0]) loadImage(e.target.files[0]);
+    });
+
+    // Load Image via Paste (Ctrl + V)
+    window.addEventListener('paste', (e) => {
+      const items = e.clipboardData.items;
+      for (let item of items) {
+        if (item.type.indexOf('image') !== -1) {
+          loadImage(item.getAsFile());
+        }
+      }
+    });
+
+    function loadImage(file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        img = new Image();
+        img.onload = () => {
+          canvas.width = img.width;
+          canvas.height = img.height;
+          history = [];
+          startPoint = null;
+          isSelecting = false;
+          redrawBase();
+          saveState();
+          measureInfo.textContent = 'Klik pada gambar untuk menentukan titik awal (Point 1).';
+        };
+        img.src = event.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function saveState() {
+      history.push(ctx.getImageData(0, 0, canvas.width, canvas.height));
+    }
+
+    function redrawBase() {
+      if (img.src) ctx.drawImage(img, 0, 0);
+    }
+
+    // Snap Logic: Tolerance 45 degree (Horizontal vs Vertical)
+    function getSnappedPoint(p1, p2) {
+      const dx = p2.x - p1.x;
+      const dy = p2.y - p1.y;
+      if (Math.abs(dx) >= Math.abs(dy)) {
+        return { x: p2.x, y: p1.y }; // Snap Horizontal
+      } else {
+        return { x: p1.x, y: p2.y }; // Snap Vertical
+      }
+    }
+
+    // Draw Line Style |-----| with Label
+    function drawDimensionLine(context, p1, p2, color, thickness) {
+      const p2Snap = getSnappedPoint(p1, p2);
+      const dx = p2Snap.x - p1.x;
+      const dy = p2Snap.y - p1.y;
+      const distPx = Math.hypot(dx, dy);
+      const distMm = distPx / SCALE_PX_PER_MM;
+
+      context.save();
+      context.strokeStyle = color;
+      context.fillStyle = color;
+      context.lineWidth = thickness;
+      context.lineCap = 'square';
+
+      const capSize = Math.max(8, thickness * 3); // Perpendicular tick length
+
+      context.beginPath();
+      // Main Line
+      context.moveTo(p1.x, p1.y);
+      context.lineTo(p2Snap.x, p2Snap.y);
+
+      // Ticks | at start & end
+      if (p2Snap.y === p1.y) { // Horizontal line
+        context.moveTo(p1.x, p1.y - capSize);
+        context.lineTo(p1.x, p1.y + capSize);
+        context.moveTo(p2Snap.x, p2Snap.y - capSize);
+        context.lineTo(p2Snap.x, p2Snap.y + capSize);
+      } else { // Vertical line
+        context.moveTo(p1.x - capSize, p1.y);
+        context.lineTo(p1.x + capSize, p1.y);
+        context.moveTo(p2Snap.x - capSize, p2Snap.y);
+        context.lineTo(p2Snap.x + capSize, p2Snap.y);
+      }
+      context.stroke();
+
+      // Text label position: Center Right
+      const midX = (p1.x + p2Snap.x) / 2;
+      const midY = (p1.y + p2Snap.y) / 2;
+      const label = `${distMm.toFixed(3)}mm/${Math.round(distPx)}px`;
+
+      context.font = 'bold 13px Arial';
+      const textX = midX + 10;
+      const textY = midY - 4;
+
+      // Label background for high contrast
+      const metrics = context.measureText(label);
+      context.fillStyle = 'rgba(0, 0, 0, 0.75)';
+      context.fillRect(textX - 3, textY - 12, metrics.width + 6, 16);
+
+      // Label text
+      context.fillStyle = color;
+      context.fillText(label, textX, textY);
+      context.restore();
+
+      return { distPx, distMm };
+    }
+
+    // Mouse Move Preview
+    canvas.addEventListener('mousemove', (e) => {
+      if (!isSelecting || !img.src) return;
+      const rect = canvas.getBoundingClientRect();
+      const currentPoint = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+
+      // Restore last canvas state for smooth preview
+      ctx.putImageData(history[history.length - 1], 0, 0);
+      const stats = drawDimensionLine(ctx, startPoint, currentPoint, lineColor.value, lineWidth.value);
+
+      measureInfo.textContent = `Preview: ${stats.distMm.toFixed(3)} mm / ${Math.round(stats.distPx)} px (Klik untuk kunci)`;
+    });
+
+    // Click Handler (2 Points)
+    canvas.addEventListener('click', (e) => {
+      if (!img.src) return;
+      const rect = canvas.getBoundingClientRect();
+      const clickPoint = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+
+      if (!isSelecting) {
+        // First Point Clicked
+        startPoint = clickPoint;
+        isSelecting = true;
+        measureInfo.textContent = 'Titik 1 terkunci. Geser mouse & klik titik kedua.';
+      } else {
+        // Second Point Clicked (Finalize)
+        ctx.putImageData(history[history.length - 1], 0, 0);
+        const stats = drawDimensionLine(ctx, startPoint, clickPoint, lineColor.value, lineWidth.value);
+        saveState();
+        isSelecting = false;
+        startPoint = null;
+        measureInfo.textContent = `Selesai! Panjang Garis: ${stats.distMm.toFixed(3)} mm (${Math.round(stats.distPx)} px). Klik untuk buat garis baru.`;
+      }
+    });
+
+    // Cancel selection on Escape key
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && isSelecting) {
+        isSelecting = false;
+        startPoint = null;
+        ctx.putImageData(history[history.length - 1], 0, 0);
+        measureInfo.textContent = 'Pemilihan garis dibatalkan.';
+      }
+    });
+
+    undoBtn.addEventListener('click', () => {
+      if (history.length > 1) {
+        history.pop();
+        ctx.putImageData(history[history.length - 1], 0, 0);
+        isSelecting = false;
+        startPoint = null;
+        measureInfo.textContent = 'Garis terakhir dihapus.';
+      }
+    });
+
+    clearBtn.addEventListener('click', () => {
+      if (img.src) {
+        history = [];
+        redrawBase();
+        saveState();
+        isSelecting = false;
+        startPoint = null;
+        measureInfo.textContent = 'Semua garis di-reset.';
+      }
+    });
+
+    saveBtn.addEventListener('click', () => {
+      if (!img.src) return;
+      const link = document.createElement('a');
+      link.download = 'oct-measurement.png';
+      link.href = canvas.toDataURL();
+      link.click();
+    });
+  </script>
+</body>
+</html>

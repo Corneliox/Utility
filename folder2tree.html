@@ -92,9 +92,15 @@
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path d="M8 2a1 1 0 000 2h2a1 1 0 100-2H8z" /><path d="M3 5a2 2 0 012-2h6a2 2 0 012 2v12a2 2 0 01-2 2H5a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H6zm3 0a1 1 0 000 2h3a1 1 0 100-2H9zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H6zm3 0a1 1 0 100 2h3a1 1 0 100-2H9z" /></svg>
                         Copy Selected as Text
                     </button>
+                    
+                    <div class="flex items-center gap-2 text-sm ml-2">
+                        <input type="checkbox" id="folders-only-checkbox" class="tree-checkbox">
+                        <label for="folders-only-checkbox" class="cursor-pointer text-gray-300 hover:text-white transition-colors">Folders Only</label>
+                    </div>
+
                     <div id="select-all-container" class="hidden ml-auto flex items-center gap-2 text-sm">
                         <input type="checkbox" id="select-all-checkbox" class="tree-checkbox" checked>
-                        <label for="select-all-checkbox" class="cursor-pointer">Select All</label>
+                        <label for="select-all-checkbox" class="cursor-pointer text-gray-300 hover:text-white transition-colors">Select All</label>
                     </div>
                 </div>
             </div>
@@ -122,9 +128,11 @@
         const copyNotification = document.getElementById('copy-notification');
         const selectAllContainer = document.getElementById('select-all-container');
         const selectAllCheckbox = document.getElementById('select-all-checkbox');
+        const foldersOnlyCheckbox = document.getElementById('folders-only-checkbox'); // DOM Baru
 
         // --- State ---
         let fileTreeData = null;
+        let selectedFilesList = null; // Menyimpan data file agar bisa dirender ulang
 
         // --- SVG Icons ---
         const folderIcon = `<svg xmlns="http://www.w3.org/2000/svg" class="icon text-yellow-400" viewBox="0 0 20 20" fill="currentColor"><path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" /></svg>`;
@@ -136,15 +144,26 @@
         folderInput.addEventListener('change', handleFolderSelection);
         copyTextBtn.addEventListener('click', handleCopyText);
         selectAllCheckbox.addEventListener('change', handleSelectAll);
+        
+        // Listener baru untuk render ulang saat opsi diganti
+        foldersOnlyCheckbox.addEventListener('change', () => {
+            if (selectedFilesList) {
+                renderTree(selectedFilesList); 
+            }
+        });
 
         // --- Core Functions ---
 
         function handleFolderSelection(event) {
-            const files = event.target.files;
-            if (files.length === 0) return;
+            selectedFilesList = event.target.files;
+            if (selectedFilesList.length === 0) return;
+            renderTree(selectedFilesList);
+        }
 
+        function renderTree(files) {
             placeholder.style.display = 'none';
-            fileTreeData = buildTree(files);
+            // Sekarang buildTree membaca opsi checkbox
+            fileTreeData = buildTree(files, foldersOnlyCheckbox.checked); 
             const treeElement = createTreeElement(fileTreeData);
             treeContainer.innerHTML = '';
             treeContainer.appendChild(treeElement);
@@ -155,7 +174,7 @@
             selectAllCheckbox.checked = true;
         }
 
-        function buildTree(files) {
+        function buildTree(files, isFoldersOnly) {
             const filePaths = Array.from(files).map(file => file.webkitRelativePath);
             const rootName = filePaths[0].split('/')[0];
             const tree = { name: rootName, type: 'folder', children: {}, path: rootName };
@@ -168,8 +187,14 @@
                     const part = parts[i];
                     currentPath += '/' + part;
                     const isLastPart = i === parts.length - 1;
+                    const isFolder = i < parts.length - 1 || (isLastPart && path.endsWith('/'));
+
+                    // Logika Pilihan: Abaikan file jika opsi Folders Only dicentang
+                    if (isFoldersOnly && !isFolder) {
+                        continue;
+                    }
+
                     if (!currentNode[part]) {
-                        const isFolder = i < parts.length - 1 || (isLastPart && path.endsWith('/'));
                         currentNode[part] = {
                             name: part,
                             type: isFolder ? 'folder' : 'file',

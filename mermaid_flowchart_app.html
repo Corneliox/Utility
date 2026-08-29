@@ -1,0 +1,1682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mermaid Canvas - Visual Flowchart Studio</title>
+  <!-- Google Fonts & Mermaid.js CDN -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+
+  <style>
+    :root {
+      --bg-dark: #0b0f19;
+      --bg-panel: rgba(17, 24, 39, 0.85);
+      --bg-panel-solid: #111827;
+      --bg-card: #1f2937;
+      --border-color: rgba(255, 255, 255, 0.1);
+      --border-active: #6366f1;
+      --text-main: #f9fafb;
+      --text-muted: #9ca3af;
+      --accent: #6366f1;
+      --accent-hover: #4f46e5;
+      --accent-glow: rgba(99, 102, 241, 0.25);
+      --cyan-accent: #06b6d4;
+      --emerald-accent: #10b981;
+      --amber-accent: #f59e0b;
+      --rose-accent: #f43f5e;
+      --grid-dot: rgba(255, 255, 255, 0.07);
+      --grid-line: rgba(255, 255, 255, 0.03);
+      --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
+      --shadow-glow: 0 0 20px rgba(99, 102, 241, 0.3);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Top Navigation Bar */
+    header {
+      height: 56px;
+      background: var(--bg-panel);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      z-index: 100;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      font-size: 1.1rem;
+      letter-spacing: -0.02em;
+    }
+
+    .brand-icon {
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(135deg, var(--accent), var(--cyan-accent));
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 12px var(--accent-glow);
+    }
+
+    .brand-icon svg {
+      width: 20px;
+      height: 20px;
+      fill: #fff;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* Buttons & Controls */
+    .btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      box-shadow: 0 0 10px var(--accent-glow);
+    }
+
+    .btn-primary:hover {
+      background: var(--accent-hover);
+    }
+
+    .btn-sm {
+      padding: 4px 8px;
+      font-size: 0.75rem;
+    }
+
+    .select-input {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      outline: none;
+      cursor: pointer;
+    }
+
+    /* App Container Layout */
+    .app-container {
+      flex: 1;
+      display: flex;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Left Toolbar / Palette */
+    .toolbar-left {
+      width: 240px;
+      background: var(--bg-panel);
+      backdrop-filter: blur(12px);
+      border-right: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      padding: 16px;
+      z-index: 50;
+      overflow-y: auto;
+    }
+
+    .panel-section-title {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+      font-weight: 600;
+    }
+
+    .shape-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+
+    .shape-item {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .shape-item:hover {
+      border-color: var(--accent);
+      color: var(--text-main);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    .shape-preview {
+      width: 44px;
+      height: 28px;
+      border: 2px solid var(--accent);
+      background: rgba(99, 102, 241, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .shape-preview.rounded { border-radius: 14px; }
+    .shape-preview.stadium { border-radius: 20px; }
+    .shape-preview.diamond { transform: rotate(45deg) scale(0.7); }
+    .shape-preview.circle { width: 28px; height: 28px; border-radius: 50%; }
+    .shape-preview.db { border-radius: 4px; border-top-style: dashed; }
+
+    /* Canvas Area */
+    .canvas-container {
+      flex: 1;
+      position: relative;
+      background-color: var(--bg-dark);
+      background-image: 
+        radial-gradient(var(--grid-dot) 1px, transparent 1px),
+        linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
+        linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
+      background-size: 20px 20px, 100px 100px, 100px 100px;
+      overflow: hidden;
+      cursor: default;
+    }
+
+    .canvas-svg {
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+
+    /* Native Mermaid SVG Nodes Interactive Styling */
+    .native-selected-node rect,
+    .native-selected-node polygon,
+    .native-selected-node circle,
+    .native-selected-node path {
+      stroke: #3b82f6 !important;
+      stroke-width: 3px !important;
+      filter: drop-shadow(0 0 12px rgba(59, 130, 246, 0.85));
+    }
+
+    .node, g.node {
+      transition: filter 0.15s ease;
+    }
+
+    .node:hover, g.node:hover {
+      filter: brightness(1.2) drop-shadow(0 2px 8px rgba(99, 102, 241, 0.4));
+    }
+
+    /* Floating Canvas Controls */
+    .canvas-controls {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      background: var(--bg-panel);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px;
+      z-index: 60;
+      box-shadow: var(--shadow-lg);
+    }
+
+    .zoom-text {
+      font-size: 0.8rem;
+      padding: 0 8px;
+      color: var(--text-muted);
+      min-width: 50px;
+      text-align: center;
+    }
+
+    /* Right Inspector Panel */
+    .toolbar-right {
+      width: 260px;
+      background: var(--bg-panel);
+      backdrop-filter: blur(12px);
+      border-left: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      padding: 16px;
+      z-index: 50;
+      overflow-y: auto;
+    }
+
+    .prop-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .prop-label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .text-input {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      padding: 8px 10px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      outline: none;
+      width: 100%;
+    }
+
+    .text-input:focus {
+      border-color: var(--accent);
+    }
+
+    .color-picker-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 6px;
+    }
+
+    .color-swatch {
+      width: 100%;
+      height: 24px;
+      border-radius: 4px;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: transform 0.1s ease;
+    }
+
+    .color-swatch:hover {
+      transform: scale(1.1);
+    }
+
+    .color-swatch.active {
+      border-color: #fff;
+    }
+
+    /* Bottom Mermaid Code / Preview Split Panel */
+    .bottom-panel {
+      height: 240px;
+      background: var(--bg-panel-solid);
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      z-index: 70;
+      position: relative;
+    }
+
+    .panel-tab-bar {
+      display: flex;
+      background: #0d1322;
+      border-bottom: 1px solid var(--border-color);
+      padding: 0 12px;
+    }
+
+    .panel-tab {
+      padding: 8px 16px;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      font-weight: 500;
+    }
+
+    .panel-tab.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+
+    .editor-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .code-editor {
+      flex: 1;
+      width: 100%;
+      background: #090d16;
+      color: #38bdf8;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.85rem;
+      border: none;
+      padding: 12px;
+      outline: none;
+      resize: none;
+      line-height: 1.5;
+    }
+
+    .mermaid-render-preview {
+      flex: 1;
+      background: #ffffff;
+      padding: 16px;
+      overflow: auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* SVG Canvas Element Styling */
+    .node-group {
+      cursor: move;
+    }
+
+    .node-shape {
+      fill: #1e293b;
+      stroke: var(--accent);
+      stroke-width: 2px;
+      transition: stroke 0.15s ease, filter 0.15s ease;
+    }
+
+    .node-group:hover .node-shape {
+      stroke: var(--cyan-accent);
+      filter: drop-shadow(0 0 6px rgba(6, 182, 212, 0.4));
+    }
+
+    .node-group.selected .node-shape {
+      stroke: var(--rose-accent);
+      stroke-width: 3px;
+      filter: drop-shadow(0 0 10px rgba(244, 63, 94, 0.5));
+    }
+
+    .node-text {
+      fill: #f8fafc;
+      font-size: 14px;
+      font-weight: 500;
+      text-anchor: middle;
+      dominant-baseline: central;
+      pointer-events: none;
+    }
+
+    .port-circle {
+      fill: var(--accent);
+      stroke: #fff;
+      stroke-width: 2px;
+      r: 5;
+      cursor: crosshair;
+      opacity: 0;
+      transition: opacity 0.2s ease, transform 0.15s ease;
+    }
+
+    .node-group:hover .port-circle, .node-group.selected .port-circle {
+      opacity: 1;
+    }
+
+    .port-circle:hover {
+      transform: scale(1.4);
+      fill: var(--cyan-accent);
+    }
+
+    /* Connection Lines */
+    .connection-line {
+      stroke: #64748b;
+      stroke-width: 2px;
+      fill: none;
+      cursor: pointer;
+    }
+
+    .connection-line:hover {
+      stroke: var(--cyan-accent);
+      stroke-width: 3px;
+    }
+
+    .connection-line.selected {
+      stroke: var(--rose-accent);
+      stroke-width: 3px;
+    }
+
+    .connection-text {
+      fill: var(--text-muted);
+      font-size: 12px;
+      text-anchor: middle;
+      background: var(--bg-dark);
+      padding: 2px 4px;
+    }
+
+    /* Connection Temp Line during drag */
+    .temp-link {
+      stroke: var(--cyan-accent);
+      stroke-width: 2px;
+      stroke-dasharray: 4 4;
+      fill: none;
+      pointer-events: none;
+    }
+
+    /* Helper badge */
+    .badge {
+      background: rgba(99, 102, 241, 0.2);
+      color: var(--accent);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.7rem;
+      font-weight: 600;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 260px;
+      right: 20px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      box-shadow: var(--shadow-lg);
+      z-index: 200;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.3s ease;
+      pointer-events: none;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navigation Header -->
+  <header>
+    <div class="brand">
+      <div class="brand-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path></svg>
+      </div>
+      <span>Mermaid Canvas Studio</span>
+      <span class="badge">v1.0</span>
+    </div>
+
+    <div class="header-actions">
+      <label style="font-size:0.8rem; color:var(--text-muted)">Direction:</label>
+      <select id="flowDirection" class="select-input">
+        <option value="TD">Top-Down (TD)</option>
+        <option value="LR" selected>Left-Right (LR)</option>
+        <option value="BT">Bottom-Top (BT)</option>
+        <option value="RL">Right-Left (RL)</option>
+      </select>
+
+      <label style="font-size:0.8rem; color:var(--text-muted); margin-left:8px;">Template:</label>
+      <select id="templateSelect" class="select-input">
+        <option value="">Load Template...</option>
+        <option value="system">System Architecture</option>
+        <option value="decision">Decision Workflow</option>
+      </select>
+
+      <div style="height:20px; width:1px; background:var(--border-color); margin: 0 4px;"></div>
+
+      <button class="btn" id="btnNew"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Clear</button>
+      <button class="btn" id="btnExportJSON">Save JSON</button>
+      <button class="btn" id="btnImportJSON">Load JSON</button>
+      <button class="btn btn-primary" id="btnExportSVG">Export SVG</button>
+      <button class="btn btn-primary" id="btnCopyMermaid">Copy Mermaid</button>
+    </div>
+  </header>
+
+  <!-- Main Workspace -->
+  <div class="app-container">
+    
+    <!-- Left Shape & Tool Palette -->
+    <aside class="toolbar-left">
+      <div>
+        <div class="panel-section-title">Add Flowchart Shapes</div>
+        <div class="shape-grid">
+          <div class="shape-item" data-shape="rect">
+            <div class="shape-preview"></div>
+            <span>Rectangle</span>
+          </div>
+          <div class="shape-item" data-shape="rounded">
+            <div class="shape-preview rounded"></div>
+            <span>Rounded</span>
+          </div>
+          <div class="shape-item" data-shape="stadium">
+            <div class="shape-preview stadium"></div>
+            <span>Stadium</span>
+          </div>
+          <div class="shape-item" data-shape="diamond">
+            <div class="shape-preview diamond"></div>
+            <span>Decision</span>
+          </div>
+          <div class="shape-item" data-shape="circle">
+            <div class="shape-preview circle"></div>
+            <span>Circle</span>
+          </div>
+          <div class="shape-item" data-shape="db">
+            <div class="shape-preview db"></div>
+            <span>Database</span>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="panel-section-title">Canvas Instructions</div>
+        <div style="font-size: 0.78rem; color: var(--text-muted); line-height: 1.5;">
+          • <strong>Add Shape:</strong> Click shape from left palette.<br>
+          • <strong>Connect Nodes:</strong> Click blue port circle on a node and drag arrow to target node.<br>
+          • <strong>Edit Element:</strong> Click node or line to edit in Right Inspector.<br>
+          • <strong>Pan Canvas:</strong> Hold <kbd style="background:#1f2937; padding:2px 4px; border-radius:3px;">Space</kbd> + drag or middle click.<br>
+          • <strong>Delete:</strong> Press <kbd style="background:#1f2937; padding:2px 4px; border-radius:3px;">Delete</kbd> key.
+        </div>
+      </div>
+    </aside>
+
+    <!-- Canvas Workspace -->
+    <main class="canvas-container" id="canvasContainer">
+      <svg class="canvas-svg" id="canvasSvg">
+        <!-- SVG Markers for Arrows -->
+        <defs>
+          <marker id="arrowhead" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b"></path>
+          </marker>
+          <marker id="arrowhead-selected" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#f43f5e"></path>
+          </marker>
+        </defs>
+
+        <!-- Main Zoom/Pan Viewport Group -->
+        <g id="viewportGroup">
+          <g id="connectionsGroup"></g>
+          <g id="nodesGroup"></g>
+          <path id="tempConnectionLine" class="temp-link" d="" style="display:none;"></path>
+        </g>
+      </svg>
+
+      <!-- Zoom & Fit Controls Floating Widget -->
+      <div class="canvas-controls">
+        <button class="btn btn-sm" id="btnZoomOut">-</button>
+        <span class="zoom-text" id="zoomVal">100%</span>
+        <button class="btn btn-sm" id="btnZoomIn">+</button>
+        <button class="btn btn-sm" id="btnZoomReset">Reset</button>
+      </div>
+    </main>
+
+    <!-- Right Inspector Panel -->
+    <aside class="toolbar-right">
+      <div class="panel-section-title">Inspector</div>
+
+      <div id="inspectorEmpty" style="font-size: 0.8rem; color: var(--text-muted); text-align: center; margin-top: 20px;">
+        Select a node or connection to inspect & edit properties.
+      </div>
+
+      <!-- Node Properties -->
+      <div id="nodeInspector" style="display: none;" class="prop-group">
+        <div class="prop-label">Node Label</div>
+        <input type="text" id="nodeLabelInput" class="text-input" placeholder="Node Text...">
+
+        <div class="prop-label" style="margin-top: 10px;">Shape Type</div>
+        <select id="nodeShapeSelect" class="select-input">
+          <option value="rect">Rectangle [Text]</option>
+          <option value="rounded">Rounded (Text)</option>
+          <option value="stadium">Stadium ([Text])</option>
+          <option value="diamond">Decision {Text}</option>
+          <option value="circle">Circle ((Text))</option>
+          <option value="db">Database [(Text)]</option>
+        </select>
+
+        <div class="prop-label" style="margin-top: 10px;">Color Theme</div>
+        <div class="color-picker-grid">
+          <div class="color-swatch" style="background:#1e293b; border-color:#6366f1;" data-color="indigo"></div>
+          <div class="color-swatch" style="background:#064e3b; border-color:#10b981;" data-color="emerald"></div>
+          <div class="color-swatch" style="background:#7c2d12; border-color:#f59e0b;" data-color="amber"></div>
+          <div class="color-swatch" style="background:#881337; border-color:#f43f5e;" data-color="rose"></div>
+          <div class="color-swatch" style="background:#164e63; border-color:#06b6d4;" data-color="cyan"></div>
+        </div>
+
+        <button class="btn btn-sm" id="btnDeleteSelected" style="margin-top: 16px; background: rgba(244,63,94,0.2); color:#f43f5e; border-color:rgba(244,63,94,0.4);">
+          Delete Node
+        </button>
+      </div>
+
+      <!-- Connection Properties -->
+      <div id="connectionInspector" style="display: none;" class="prop-group">
+        <div class="prop-label">Link Label</div>
+        <input type="text" id="connLabelInput" class="text-input" placeholder="e.g. Yes / No / Valid">
+
+        <div class="prop-label" style="margin-top: 10px;">Arrow Style</div>
+        <select id="connStyleSelect" class="select-input">
+          <option value="solid">Arrow --> </option>
+          <option value="open">Line --- </option>
+          <option value="dotted">Dotted -.-&gt; </option>
+          <option value="thick">Thick ==&gt; </option>
+        </select>
+
+        <button class="btn btn-sm" id="btnDeleteConnection" style="margin-top: 16px; background: rgba(244,63,94,0.2); color:#f43f5e; border-color:rgba(244,63,94,0.4);">
+          Delete Connection
+        </button>
+      </div>
+    </aside>
+
+  </div>
+
+  <!-- Bottom Panel (Mermaid Code & Live SVG Preview) -->
+  <div class="bottom-panel">
+    <div class="editor-container">
+      <div class="panel-tab-bar" style="align-items: center; justify-content: space-between;">
+        <div style="display: flex;">
+          <div class="panel-tab active" id="tabCode">Generated Mermaid Code</div>
+          <div class="panel-tab" id="tabPreview">Live Mermaid Rendered SVG</div>
+        </div>
+        <button class="btn btn-sm btn-primary" id="btnSyncCode" style="margin-right: 10px;">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+          Sync Code to Canvas
+        </button>
+      </div>
+
+      <div id="codeView" style="flex:1; display:flex;">
+        <textarea id="mermaidCodeEditor" class="code-editor" spellcheck="false"></textarea>
+      </div>
+
+      <div id="previewView" class="mermaid-render-preview" style="display:none;">
+        <div id="mermaidRenderOutput"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast">Notification text</div>
+
+  <input type="file" id="fileInput" accept=".json" style="display:none;">
+
+  <!-- Application Logic -->
+  <script>
+    // --- Application State ---
+    let state = {
+      nodes: [
+        { id: 'A', label: 'Start Request', shape: 'rounded', x: 120, y: 140, color: 'indigo' },
+        { id: 'B', label: 'Is Authorized?', shape: 'diamond', x: 340, y: 125, color: 'amber' },
+        { id: 'C', label: 'Process Data', shape: 'rect', x: 580, y: 80, color: 'emerald' },
+        { id: 'D', label: 'Access Denied', shape: 'rect', x: 580, y: 220, color: 'rose' }
+      ],
+      connections: [
+        { id: 'c1', from: 'A', to: 'B', label: '', style: 'solid' },
+        { id: 'c2', from: 'B', to: 'C', label: 'Yes', style: 'solid' },
+        { id: 'c3', from: 'B', to: 'D', label: 'No', style: 'dotted' }
+      ],
+      direction: 'LR',
+      selectedNodeId: null,
+      selectedConnectionId: null,
+      pan: { x: 0, y: 0 },
+      zoom: 1,
+      isPanning: false,
+      panStart: { x: 0, y: 0 },
+      draggedNode: null,
+      dragOffset: { x: 0, y: 0 },
+      connectingFrom: null
+    };
+
+    // DOM Elements
+    const canvasContainer = document.getElementById('canvasContainer');
+    const canvasSvg = document.getElementById('canvasSvg');
+    const viewportGroup = document.getElementById('viewportGroup');
+    const nodesGroup = document.getElementById('nodesGroup');
+    const connectionsGroup = document.getElementById('connectionsGroup');
+    const tempConnectionLine = document.getElementById('tempConnectionLine');
+    const mermaidCodeEditor = document.getElementById('mermaidCodeEditor');
+    const mermaidRenderOutput = document.getElementById('mermaidRenderOutput');
+
+    // Color theme map
+    const themeColors = {
+      indigo: { fill: '#1e293b', stroke: '#6366f1' },
+      emerald: { fill: '#064e3b', stroke: '#10b981' },
+      amber: { fill: '#7c2d12', stroke: '#f59e0b' },
+      rose: { fill: '#881337', stroke: '#f43f5e' },
+      cyan: { fill: '#164e63', stroke: '#06b6d4' }
+    };
+
+    // Initialize Mermaid.js
+    if (window.mermaid) {
+      mermaid.initialize({
+        startOnLoad: false,
+        theme: 'dark',
+        securityLevel: 'loose'
+      });
+    }
+
+    // --- Core Rendering Functions ---
+    function render() {
+      viewportGroup.setAttribute('transform', `translate(${state.pan.x}, ${state.pan.y}) scale(${state.zoom})`);
+      document.getElementById('zoomVal').innerText = `${Math.round(state.zoom * 100)}%`;
+
+      renderNodes();
+      renderConnections();
+      updateMermaidSyntax();
+      updateInspector();
+    }
+
+    function renderNodes() {
+      nodesGroup.innerHTML = '';
+
+      state.nodes.forEach(node => {
+        const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        g.setAttribute('class', `node-group ${state.selectedNodeId === node.id ? 'selected' : ''}`);
+        g.setAttribute('transform', `translate(${node.x}, ${node.y})`);
+        g.setAttribute('data-id', node.id);
+
+        const theme = themeColors[node.color || 'indigo'] || themeColors.indigo;
+        const labelText = node.label || node.id;
+        const displayLabel = labelText.length > 26 ? labelText.substring(0, 24) + '…' : labelText;
+        const width = Math.max(140, Math.min(240, labelText.length * 7.5));
+        const height = 50;
+
+        // Tooltip for full text hover
+        const titleEl = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+        titleEl.textContent = labelText;
+        g.appendChild(titleEl);
+
+        // Render Shape geometry
+        let shapeEl;
+        if (node.shape === 'rounded') {
+          shapeEl = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+          shapeEl.setAttribute('x', 0); shapeEl.setAttribute('y', 0);
+          shapeEl.setAttribute('width', width); shapeEl.setAttribute('height', height);
+          shapeEl.setAttribute('rx', 16); shapeEl.setAttribute('ry', 16);
+        } else if (node.shape === 'stadium') {
+          shapeEl = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+          shapeEl.setAttribute('x', 0); shapeEl.setAttribute('y', 0);
+          shapeEl.setAttribute('width', width); shapeEl.setAttribute('height', height);
+          shapeEl.setAttribute('rx', 25); shapeEl.setAttribute('ry', 25);
+        } else if (node.shape === 'diamond') {
+          shapeEl = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+          const hw = width / 2, hh = height / 2;
+          shapeEl.setAttribute('points', `${hw},0 ${width},${hh} ${hw},${height} 0,${hh}`);
+        } else if (node.shape === 'circle') {
+          shapeEl = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+          shapeEl.setAttribute('cx', width/2); shapeEl.setAttribute('cy', height/2);
+          shapeEl.setAttribute('r', height/2);
+        } else if (node.shape === 'db') {
+          shapeEl = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+          shapeEl.setAttribute('x', 0); shapeEl.setAttribute('y', 0);
+          shapeEl.setAttribute('width', width); shapeEl.setAttribute('height', height);
+          shapeEl.setAttribute('rx', 4);
+        } else { // default rect
+          shapeEl = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+          shapeEl.setAttribute('x', 0); shapeEl.setAttribute('y', 0);
+          shapeEl.setAttribute('width', width); shapeEl.setAttribute('height', height);
+          shapeEl.setAttribute('rx', 6);
+        }
+
+        shapeEl.setAttribute('class', 'node-shape');
+        shapeEl.style.fill = theme.fill;
+        shapeEl.style.stroke = theme.stroke;
+        g.appendChild(shapeEl);
+
+        // Node Label
+        const textEl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        textEl.setAttribute('x', width / 2);
+        textEl.setAttribute('y', height / 2);
+        textEl.setAttribute('class', 'node-text');
+        textEl.textContent = displayLabel;
+        g.appendChild(textEl);
+
+        // Connection Ports (Top, Right, Bottom, Left)
+        const ports = [
+          { name: 'top', cx: width / 2, cy: 0 },
+          { name: 'right', cx: width, cy: height / 2 },
+          { name: 'bottom', cx: width / 2, cy: height },
+          { name: 'left', cx: 0, cy: height / 2 }
+        ];
+
+        ports.forEach(port => {
+          const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+          circle.setAttribute('cx', port.cx);
+          circle.setAttribute('cy', port.cy);
+          circle.setAttribute('class', 'port-circle');
+          circle.setAttribute('data-port', port.name);
+          circle.setAttribute('data-node', node.id);
+
+          circle.addEventListener('mousedown', (e) => {
+            e.stopPropagation();
+            state.connectingFrom = { nodeId: node.id, x: node.x + port.cx, y: node.y + port.cy };
+            tempConnectionLine.style.display = 'block';
+          });
+
+          g.appendChild(circle);
+        });
+
+        // Event listeners for dragging & selecting node
+        g.addEventListener('mousedown', (e) => {
+          if (e.target.classList.contains('port-circle')) return;
+          e.stopPropagation();
+          state.selectedNodeId = node.id;
+          state.selectedConnectionId = null;
+          state.draggedNode = node;
+          state.dragOffset = {
+            x: (e.clientX - state.pan.x) / state.zoom - node.x,
+            y: (e.clientY - state.pan.y) / state.zoom - node.y
+          };
+          render();
+        });
+
+        nodesGroup.appendChild(g);
+      });
+    }
+
+    function renderConnections() {
+      connectionsGroup.innerHTML = '';
+
+      state.connections.forEach(conn => {
+        const fromNode = state.nodes.find(n => n.id === conn.from);
+        const toNode = state.nodes.find(n => n.id === conn.to);
+        if (!fromNode || !toNode) return;
+
+        const fromLabel = fromNode.label || fromNode.id;
+        const toLabel = toNode.label || toNode.id;
+        const w1 = Math.max(140, Math.min(240, fromLabel.length * 7.5));
+        const w2 = Math.max(140, Math.min(240, toLabel.length * 7.5));
+        const h = 50;
+
+        const x1 = fromNode.x + w1 / 2;
+        const y1 = fromNode.y + h / 2;
+        const x2 = toNode.x + w2 / 2;
+        const y2 = toNode.y + h / 2;
+
+        const pathEl = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        const dx = x2 - x1, dy = y2 - y1;
+        const cx1 = x1 + dx * 0.4, cy1 = y1;
+        const cx2 = x1 + dx * 0.6, cy2 = y2;
+        
+        const pathData = `M ${x1} ${y1} C ${cx1} ${cy1}, ${cx2} ${cy2}, ${x2} ${y2}`;
+        pathEl.setAttribute('d', pathData);
+        pathEl.setAttribute('class', `connection-line ${state.selectedConnectionId === conn.id ? 'selected' : ''}`);
+        
+        if (conn.style === 'dotted') {
+          pathEl.setAttribute('stroke-dasharray', '5 5');
+        } else if (conn.style === 'thick') {
+          pathEl.setAttribute('stroke-width', '4px');
+        }
+
+        pathEl.setAttribute('marker-end', state.selectedConnectionId === conn.id ? 'url(#arrowhead-selected)' : 'url(#arrowhead)');
+
+        pathEl.addEventListener('click', (e) => {
+          e.stopPropagation();
+          state.selectedConnectionId = conn.id;
+          state.selectedNodeId = null;
+          render();
+        });
+
+        connectionsGroup.appendChild(pathEl);
+
+        if (conn.label) {
+          const textEl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+          textEl.setAttribute('x', (x1 + x2) / 2);
+          textEl.setAttribute('y', (y1 + y2) / 2 - 8);
+          textEl.setAttribute('class', 'connection-text');
+          textEl.textContent = conn.label;
+          connectionsGroup.appendChild(textEl);
+        }
+      });
+    }
+
+    let isEditingCode = false;
+
+    // --- Bi-directional Parser: Converts Mermaid Code String -> Canvas State ---
+    function parseMermaidCodeToCanvas(code) {
+      if (!code || !code.trim()) return;
+
+      const lines = code.split('\n').map(l => l.trim()).filter(l => l && !l.startsWith('%%'));
+      const newNodesMap = new Map();
+      const newConnections = [];
+      const colCounts = {};
+      let dir = state.direction;
+      let currentPhase = 0;
+
+      lines.forEach(line => {
+        // Flow Direction: flowchart TD, graph LR, etc.
+        const dirMatch = line.match(/^(flowchart|graph)\s+(TD|LR|BT|RL)/i);
+        if (dirMatch) {
+          dir = dirMatch[2].toUpperCase();
+          return;
+        }
+
+        if (line.startsWith('subgraph')) {
+          currentPhase++;
+          return;
+        }
+        if (line === 'end' || line.startsWith('classDef') || line.startsWith('class ') || line.startsWith('style ') || line.startsWith('linkStyle ')) {
+          return;
+        }
+
+        // Connection Pattern 1: D1 -- "Poor Focus / Shadows" --> A2 or D1 -- Label --> A2
+        const connMatch1 = line.match(/([\w-]+)(?:\[[^\]]+\]|\([^)]+\)|\{[^}]+\})?\s*--\s*(?:"([^"]*)"|([^\s-]+))\s*--+>\s*([\w-]+)(?:\[[^\]]+\]|\([^)]+\)|\{[^}]+\})?/);
+        
+        // Connection Pattern 2: A -->|Label| B or A --> B or A -.-> B or A ==> B or A --- B
+        const connMatch2 = line.match(/([\w-]+)(?:\[[^\]]+\]|\([^)]+\)|\{[^}]+\})?\s*(---|-->|-\.->|==>|<-->)\s*(?:\|"([^"]*)"\||\|([^|]*)\||"([^"]*)")?\s*([\w-]+)(?:\[[^\]]+\]|\([^)]+\)|\{[^}]+\})?/);
+
+        const connMatch = connMatch1 || connMatch2;
+
+        if (connMatch) {
+          let fromId, arrowSymbol, label, toId;
+          if (connMatch1) {
+            fromId = connMatch1[1];
+            arrowSymbol = '-->';
+            label = connMatch1[2] || connMatch1[3] || '';
+            toId = connMatch1[4];
+          } else {
+            fromId = connMatch2[1];
+            arrowSymbol = connMatch2[2];
+            label = connMatch2[3] || connMatch2[4] || connMatch2[5] || '';
+            toId = connMatch2[6];
+          }
+
+          let style = 'solid';
+          if (arrowSymbol === '---') style = 'open';
+          else if (arrowSymbol === '-.->') style = 'dotted';
+          else if (arrowSymbol === '==>') style = 'thick';
+
+          newConnections.push({
+            id: 'c_' + fromId + '_' + toId + '_' + Math.random().toString(36).substr(2, 4),
+            from: fromId,
+            to: toId,
+            label: label.replace(/^"|"$/g, '').trim(),
+            style: style
+          });
+
+          const col = currentPhase > 0 ? currentPhase : 1;
+
+          if (!newNodesMap.has(fromId)) {
+            const existing = state.nodes.find(n => n.id === fromId);
+            colCounts[col] = (colCounts[col] || 0) + 1;
+            const idx = colCounts[col] - 1;
+            newNodesMap.set(fromId, existing || {
+              id: fromId, label: fromId, shape: 'rect',
+              x: 60 + (col - 1) * 260,
+              y: 60 + idx * 85,
+              color: 'indigo'
+            });
+          }
+          if (!newNodesMap.has(toId)) {
+            const existing = state.nodes.find(n => n.id === toId);
+            colCounts[col] = (colCounts[col] || 0) + 1;
+            const idx = colCounts[col] - 1;
+            newNodesMap.set(toId, existing || {
+              id: toId, label: toId, shape: 'rect',
+              x: 60 + (col - 1) * 260,
+              y: 60 + idx * 85,
+              color: 'indigo'
+            });
+          }
+        }
+
+        // Node Definitions with Label Sanitization: ID["Label"], ID("Label"), ID(["Label"]), ID{"Label"}, ID(("Label")), ID[("Label")]
+        const nodeMatches = line.matchAll(/([\w-]+)\s*(\(\["([^"]*)"\]\)|\[\("([^"]*)"\)\]|\(\("([^"]*)"\)\)|\{("([^"]*)"|([^}]+))\}|\(("([^"]*)"|([^)]+))\)|\[("([^"]*)"|([^\]]+))\])/g);
+        for (const match of nodeMatches) {
+          const id = match[1];
+          const fullBracket = match[2];
+          let shape = 'rect';
+          let rawLabel = id;
+
+          if (fullBracket.startsWith('(["')) {
+            shape = 'stadium';
+            rawLabel = match[3];
+          } else if (fullBracket.startsWith('[("')) {
+            shape = 'db';
+            rawLabel = match[4];
+          } else if (fullBracket.startsWith('(("')) {
+            shape = 'circle';
+            rawLabel = match[5];
+          } else if (fullBracket.startsWith('{')) {
+            shape = 'diamond';
+            rawLabel = match[7] || match[8] || id;
+          } else if (fullBracket.startsWith('(')) {
+            shape = 'rounded';
+            rawLabel = match[10] || match[11] || id;
+          } else if (fullBracket.startsWith('[')) {
+            shape = 'rect';
+            rawLabel = match[13] || match[14] || id;
+          }
+
+          let cleanLabel = rawLabel
+            .replace(/<br\s*\/?>/gi, ' - ')
+            .replace(/<[^>]+>/gi, '')
+            .replace(/^"|"$/g, '')
+            .trim();
+
+          const col = currentPhase > 0 ? currentPhase : 1;
+          const existing = state.nodes.find(n => n.id === id);
+
+          if (!existing || !newNodesMap.has(id)) {
+            colCounts[col] = (colCounts[col] || 0) + 1;
+            const idx = colCounts[col] - 1;
+            const colorList = ['indigo', 'emerald', 'amber', 'rose', 'cyan'];
+            const paletteColor = colorList[newNodesMap.size % colorList.length];
+
+            newNodesMap.set(id, {
+              id: id,
+              label: cleanLabel || id,
+              shape: shape,
+              x: existing ? existing.x : 60 + (col - 1) * 260,
+              y: existing ? existing.y : 60 + idx * 85,
+              color: existing ? existing.color : paletteColor
+            });
+          } else {
+            const n = newNodesMap.get(id);
+            n.label = cleanLabel || n.label;
+            n.shape = shape;
+          }
+        }
+      });
+
+      if (newNodesMap.size > 0) {
+        state.nodes = Array.from(newNodesMap.values());
+        state.connections = newConnections;
+        state.direction = dir;
+        document.getElementById('flowDirection').value = dir;
+        
+        if (/subgraph|classDef|class\s|<br|<i>/i.test(code)) {
+          state.hasCustomCode = true;
+          nodesGroup.style.display = 'none';
+          connectionsGroup.style.display = 'none';
+        } else {
+          renderNodes();
+          renderConnections();
+        }
+        updateInspector();
+        renderLiveMermaidSVG(code);
+      }
+    }
+
+    // --- Mermaid Syntax Conversion ---
+    function updateMermaidSyntax() {
+      if (/subgraph|classDef|class\s|<br|<i>/i.test(mermaidCodeEditor.value)) {
+        state.hasCustomCode = true;
+      }
+
+      let code = `flowchart ${state.direction}\n`;
+
+      state.nodes.forEach(node => {
+        const label = (node.label || node.id).replace(/"/g, '\"');
+        let formatted = `${node.id}["${label}"]`;
+
+        if (node.shape === 'rounded') formatted = `${node.id}("${label}")`;
+        else if (node.shape === 'stadium') formatted = `${node.id}(["${label}"])`;
+        else if (node.shape === 'diamond') formatted = `${node.id}{"${label}"}`;
+        else if (node.shape === 'circle') formatted = `${node.id}(("${label}"))`;
+        else if (node.shape === 'db') formatted = `${node.id}[("${label}")]`;
+
+        code += `    ${formatted}\n`;
+      });
+
+      state.connections.forEach(conn => {
+        let arrow = '-->';
+        if (conn.style === 'open') arrow = '---';
+        else if (conn.style === 'dotted') arrow = '-.->';
+        else if (conn.style === 'thick') arrow = '==>';
+
+        if (conn.label) {
+          arrow = `${arrow}|"${conn.label}"|`;
+        }
+
+        code += `    ${conn.from} ${arrow} ${conn.to}\n`;
+      });
+
+      if (!isEditingCode && !state.hasCustomCode) {
+        mermaidCodeEditor.value = code;
+      }
+
+      renderLiveMermaidSVG(mermaidCodeEditor.value || code);
+    }
+
+    async function renderLiveMermaidSVG(code) {
+      if (!window.mermaid || !code || !code.trim()) return;
+      try {
+        const renderId = 'mermaidSvgGen_' + Math.floor(Math.random() * 100000);
+        const { svg } = await mermaid.render(renderId, code);
+        mermaidRenderOutput.innerHTML = svg;
+
+        const isCustom = /subgraph|classDef|class\s|<br|<i>/i.test(code);
+        if (isCustom) state.hasCustomCode = true;
+
+        let nativeGroup = viewportGroup.querySelector('#nativeCanvasGroup');
+        if (!nativeGroup) {
+          nativeGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+          nativeGroup.id = 'nativeCanvasGroup';
+          viewportGroup.appendChild(nativeGroup);
+        }
+        nativeGroup.innerHTML = svg;
+
+        if (state.hasCustomCode) {
+          nodesGroup.style.display = 'none';
+          connectionsGroup.style.display = 'none';
+        }
+
+        makeNativeSvgNodesInteractive(nativeGroup);
+      } catch (err) {
+        mermaidRenderOutput.innerHTML = `<div style="color:var(--rose-accent); padding:12px; font-size:0.85rem; background:rgba(244,63,94,0.1); border-radius:6px;">
+          <strong>Mermaid Syntax Note:</strong><br>${err.message || err}
+        </div>`;
+      }
+    }
+
+    function makeNativeSvgNodesInteractive(nativeGroup) {
+      const nodes = nativeGroup.querySelectorAll('.node, g.node, [id^="flowchart-"]');
+      
+      nodes.forEach(nodeEl => {
+        nodeEl.style.cursor = 'grab';
+        
+        let isDragging = false;
+        let startMouseX = 0, startMouseY = 0;
+        let initialTransformX = 0, initialTransformY = 0;
+        let connectedEdges = [];
+
+        nodeEl.addEventListener('mousedown', (e) => {
+          e.stopPropagation();
+          isDragging = true;
+          nodeEl.style.cursor = 'grabbing';
+          startMouseX = e.clientX;
+          startMouseY = e.clientY;
+
+          nativeGroup.querySelectorAll('.native-selected-node').forEach(n => n.classList.remove('native-selected-node'));
+          nodeEl.classList.add('native-selected-node');
+
+          const transformAttr = nodeEl.getAttribute('transform') || '';
+          const match = transformAttr.match(/translate\(\s*([-\d.]+)[,\s]+([-\d.]+)\s*\)/);
+          if (match) {
+            initialTransformX = parseFloat(match[1]);
+            initialTransformY = parseFloat(match[2]);
+          } else {
+            initialTransformX = 0;
+            initialTransformY = 0;
+          }
+
+          const bbox = nodeEl.getBBox ? nodeEl.getBBox() : { x: 0, y: 0, width: 150, height: 50 };
+          const nodeCx = initialTransformX + bbox.x + bbox.width / 2;
+          const nodeCy = initialTransformY + bbox.y + bbox.height / 2;
+
+          connectedEdges = [];
+          const rawId = (nodeEl.id || '').replace(/^flowchart-/, '').replace(/-\d+$/, '');
+
+          const allEdgePaths = nativeGroup.querySelectorAll('path');
+          allEdgePaths.forEach(path => {
+            const d = path.getAttribute('d');
+            if (!d) return;
+
+            if (!path.dataset.origD) {
+              path.dataset.origD = d;
+            }
+            const origD = path.dataset.origD;
+
+            const numbers = origD.match(/[-+]?[0-9]*\.?[0-9]+/g);
+            if (!numbers || numbers.length < 4) return;
+
+            const startX = parseFloat(numbers[0]);
+            const startY = parseFloat(numbers[1]);
+            const endX = parseFloat(numbers[numbers.length - 2]);
+            const endY = parseFloat(numbers[numbers.length - 1]);
+
+            const distStart = Math.hypot(startX - nodeCx, startY - nodeCy);
+            const distEnd = Math.hypot(endX - nodeCx, endY - nodeCy);
+
+            const isSource = distStart < 160 || (rawId && (path.id || '').includes(`-${rawId}-`));
+            const isTarget = distEnd < 160 || (rawId && (path.id || '').includes(`-${rawId}`));
+
+            if (isSource || isTarget) {
+              connectedEdges.push({
+                pathEl: path,
+                origD: origD,
+                isSource: isSource,
+                isTarget: isTarget
+              });
+            }
+          });
+
+          if (rawId) {
+            state.selectedNodeId = rawId;
+            updateInspectorForNativeNode(rawId, nodeEl);
+          }
+
+          window.addEventListener('mousemove', onMouseMove);
+          window.addEventListener('mouseup', onMouseUp);
+        });
+
+        function onMouseMove(e) {
+          if (!isDragging) return;
+          const dx = (e.clientX - startMouseX) / state.zoom;
+          const dy = (e.clientY - startMouseY) / state.zoom;
+
+          const newX = initialTransformX + dx;
+          const newY = initialTransformY + dy;
+
+          nodeEl.setAttribute('transform', `translate(${newX}, ${newY})`);
+
+          connectedEdges.forEach(edge => {
+            const newPathD = shiftPathCoordinates(edge.origD, edge.isSource, edge.isTarget, dx, dy);
+            edge.pathEl.setAttribute('d', newPathD);
+          });
+        }
+
+        function onMouseUp() {
+          if (isDragging) {
+            isDragging = false;
+            nodeEl.style.cursor = 'grab';
+            window.removeEventListener('mousemove', onMouseMove);
+            window.removeEventListener('mouseup', onMouseUp);
+          }
+        }
+      });
+    }
+
+    function shiftPathCoordinates(dStr, isSource, isTarget, dx, dy) {
+      const parts = dStr.split(/(?=[MCLQSZmclqsz])/);
+      let newParts = parts.map((part, idx) => {
+        const cmd = part.charAt(0);
+        const nums = part.slice(1).trim().split(/[\s,]+/).map(parseFloat).filter(n => !isNaN(n));
+        
+        if (nums.length === 0) return part;
+
+        if (idx === 0 && isSource) {
+          nums[0] += dx;
+          nums[1] += dy;
+        } else if (idx === 1 && isSource && nums.length >= 4) {
+          nums[0] += dx;
+          nums[1] += dy;
+        }
+
+        if (idx === parts.length - 1 && isTarget) {
+          const len = nums.length;
+          nums[len - 2] += dx;
+          nums[len - 1] += dy;
+          if (len >= 4) {
+            nums[len - 4] += dx;
+            nums[len - 3] += dy;
+          }
+        }
+
+        let resStr = cmd + ' ';
+        for (let i = 0; i < nums.length; i += 2) {
+          if (i + 1 < nums.length) {
+            resStr += `${nums[i].toFixed(2)},${nums[i+1].toFixed(2)} `;
+          } else {
+            resStr += `${nums[i].toFixed(2)} `;
+          }
+        }
+        return resStr.trim();
+      });
+
+      return newParts.join(' ');
+    }
+
+    function updateInspectorForNativeNode(nodeId, nodeEl) {
+      const nodeInsp = document.getElementById('nodeInspector');
+      const connInsp = document.getElementById('connectionInspector');
+      const emptyInsp = document.getElementById('inspectorEmpty');
+
+      nodeInsp.style.display = 'flex';
+      connInsp.style.display = 'none';
+      emptyInsp.style.display = 'none';
+
+      const textEl = nodeEl.querySelector('.nodeLabel, text, foreignObject');
+      const labelText = textEl ? textEl.textContent.trim() : nodeId;
+
+      document.getElementById('nodeLabelInput').value = labelText;
+    }
+
+    // --- Inspector Panel Updates ---
+    function updateInspector() {
+      const nodeInsp = document.getElementById('nodeInspector');
+      const connInsp = document.getElementById('connectionInspector');
+      const emptyInsp = document.getElementById('inspectorEmpty');
+
+      if (state.selectedNodeId) {
+        const node = state.nodes.find(n => n.id === state.selectedNodeId);
+        if (node) {
+          nodeInsp.style.display = 'flex';
+          connInsp.style.display = 'none';
+          emptyInsp.style.display = 'none';
+
+          document.getElementById('nodeLabelInput').value = node.label || '';
+          document.getElementById('nodeShapeSelect').value = node.shape || 'rect';
+        }
+      } else if (state.selectedConnectionId) {
+        const conn = state.connections.find(c => c.id === state.selectedConnectionId);
+        if (conn) {
+          nodeInsp.style.display = 'none';
+          connInsp.style.display = 'flex';
+          emptyInsp.style.display = 'none';
+
+          document.getElementById('connLabelInput').value = conn.label || '';
+          document.getElementById('connStyleSelect').value = conn.style || 'solid';
+        }
+      } else {
+        nodeInsp.style.display = 'none';
+        connInsp.style.display = 'none';
+        emptyInsp.style.display = 'block';
+      }
+    }
+
+    // --- Event Listeners for Interaction ---
+
+    canvasContainer.addEventListener('mousedown', (e) => {
+      if (e.button === 1 || e.spaceKey || e.target === canvasContainer || e.target === canvasSvg) {
+        state.isPanning = true;
+        state.panStart = { x: e.clientX - state.pan.x, y: e.clientY - state.pan.y };
+        state.selectedNodeId = null;
+        state.selectedConnectionId = null;
+        render();
+      }
+    });
+
+    window.addEventListener('mousemove', (e) => {
+      if (state.isPanning) {
+        state.pan.x = e.clientX - state.panStart.x;
+        state.pan.y = e.clientY - state.panStart.y;
+        render();
+      } else if (state.draggedNode) {
+        state.draggedNode.x = Math.round(((e.clientX - state.pan.x) / state.zoom - state.dragOffset.x) / 10) * 10;
+        state.draggedNode.y = Math.round(((e.clientY - state.pan.y) / state.zoom - state.dragOffset.y) / 10) * 10;
+        render();
+      } else if (state.connectingFrom) {
+        const rect = canvasSvg.getBoundingClientRect();
+        const mx = (e.clientX - rect.left - state.pan.x) / state.zoom;
+        const my = (e.clientY - rect.top - state.pan.y) / state.zoom;
+        tempConnectionLine.setAttribute('d', `M ${state.connectingFrom.x} ${state.connectingFrom.y} L ${mx} ${my}`);
+      }
+    });
+
+    window.addEventListener('mouseup', (e) => {
+      if (state.connectingFrom) {
+        const targetNodeEl = e.target.closest('.node-group');
+        if (targetNodeEl) {
+          const targetId = targetNodeEl.getAttribute('data-id');
+          if (targetId && targetId !== state.connectingFrom.nodeId) {
+            state.connections.push({
+              id: 'c' + Date.now(),
+              from: state.connectingFrom.nodeId,
+              to: targetId,
+              label: '',
+              style: 'solid'
+            });
+            showToast(`Connected ${state.connectingFrom.nodeId} -> ${targetId}`);
+          }
+        }
+        state.connectingFrom = null;
+        tempConnectionLine.style.display = 'none';
+        render();
+      }
+
+      state.isPanning = false;
+      state.draggedNode = null;
+    });
+
+    canvasContainer.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      const zoomFactor = e.deltaY < 0 ? 1.1 : 0.9;
+      state.zoom = Math.min(Math.max(0.3, state.zoom * zoomFactor), 3);
+      render();
+    });
+
+    document.getElementById('btnZoomIn').addEventListener('click', () => { state.zoom = Math.min(3, state.zoom * 1.2); render(); });
+    document.getElementById('btnZoomOut').addEventListener('click', () => { state.zoom = Math.max(0.3, state.zoom / 1.2); render(); });
+    document.getElementById('btnZoomReset').addEventListener('click', () => { state.zoom = 1; state.pan = {x:0, y:0}; render(); });
+
+    document.querySelectorAll('.shape-item').forEach(item => {
+      item.addEventListener('click', () => {
+        const shape = item.getAttribute('data-shape');
+        const id = String.fromCharCode(65 + state.nodes.length % 26) + (state.nodes.length >= 26 ? Math.floor(state.nodes.length/26) : '');
+        const newNode = {
+          id: id,
+          label: `New ${shape.toUpperCase()}`,
+          shape: shape,
+          x: 200 + (state.nodes.length * 20) % 200,
+          y: 150 + (state.nodes.length * 20) % 200,
+          color: 'indigo'
+        };
+        state.nodes.push(newNode);
+        state.selectedNodeId = newNode.id;
+        render();
+        showToast(`Added ${shape} node`);
+      });
+    });
+
+    document.getElementById('nodeLabelInput').addEventListener('input', (e) => {
+      if (state.selectedNodeId) {
+        const node = state.nodes.find(n => n.id === state.selectedNodeId);
+        if (node) { node.label = e.target.value; render(); }
+      }
+    });
+
+    document.getElementById('nodeShapeSelect').addEventListener('change', (e) => {
+      if (state.selectedNodeId) {
+        const node = state.nodes.find(n => n.id === state.selectedNodeId);
+        if (node) { node.shape = e.target.value; render(); }
+      }
+    });
+
+    document.querySelectorAll('.color-swatch').forEach(swatch => {
+      swatch.addEventListener('click', () => {
+        if (state.selectedNodeId) {
+          const node = state.nodes.find(n => n.id === state.selectedNodeId);
+          if (node) {
+            node.color = swatch.getAttribute('data-color');
+            render();
+          }
+        }
+      });
+    });
+
+    document.getElementById('connLabelInput').addEventListener('input', (e) => {
+      if (state.selectedConnectionId) {
+        const conn = state.connections.find(c => c.id === state.selectedConnectionId);
+        if (conn) { conn.label = e.target.value; render(); }
+      }
+    });
+
+    document.getElementById('connStyleSelect').addEventListener('change', (e) => {
+      if (state.selectedConnectionId) {
+        const conn = state.connections.find(c => c.id === state.selectedConnectionId);
+        if (conn) { conn.style = e.target.value; render(); }
+      }
+    });
+
+    document.getElementById('btnDeleteSelected').addEventListener('click', deleteSelected);
+    document.getElementById('btnDeleteConnection').addEventListener('click', deleteSelected);
+
+    function deleteSelected() {
+      if (state.selectedNodeId) {
+        state.nodes = state.nodes.filter(n => n.id !== state.selectedNodeId);
+        state.connections = state.connections.filter(c => c.from !== state.selectedNodeId && c.to !== state.selectedNodeId);
+        state.selectedNodeId = null;
+        render();
+        showToast('Node deleted');
+      } else if (state.selectedConnectionId) {
+        state.connections = state.connections.filter(c => c.id !== state.selectedConnectionId);
+        state.selectedConnectionId = null;
+        render();
+        showToast('Connection deleted');
+      }
+    }
+
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Delete' || e.key === 'Backspace') {
+        if (document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
+          deleteSelected();
+        }
+      }
+    });
+
+    document.getElementById('flowDirection').addEventListener('change', (e) => {
+      state.direction = e.target.value;
+      render();
+    });
+
+    document.getElementById('templateSelect').addEventListener('change', (e) => {
+      const val = e.target.value;
+      if (val === 'system') {
+        state.nodes = [
+          { id: 'Client', label: 'Web Client', shape: 'rounded', x: 100, y: 140, color: 'cyan' },
+          { id: 'Gateway', label: 'API Gateway', shape: 'rect', x: 300, y: 140, color: 'indigo' },
+          { id: 'AuthService', label: 'Auth Service', shape: 'rect', x: 520, y: 60, color: 'amber' },
+          { id: 'DataDB', label: 'PostgreSQL DB', shape: 'db', x: 520, y: 220, color: 'emerald' }
+        ];
+        state.connections = [
+          { id: 'c1', from: 'Client', to: 'Gateway', label: 'HTTPS', style: 'solid' },
+          { id: 'c2', from: 'Gateway', to: 'AuthService', label: 'Verify', style: 'solid' },
+          { id: 'c3', from: 'Gateway', to: 'DataDB', label: 'Query', style: 'thick' }
+        ];
+      } else if (val === 'decision') {
+        state.nodes = [
+          { id: 'Start', label: 'User Action', shape: 'stadium', x: 100, y: 150, color: 'indigo' },
+          { id: 'Check', label: 'Check Valid?', shape: 'diamond', x: 300, y: 135, color: 'amber' },
+          { id: 'Success', label: 'Save Success', shape: 'rect', x: 520, y: 70, color: 'emerald' },
+          { id: 'Error', label: 'Show Error', shape: 'rect', x: 520, y: 230, color: 'rose' }
+        ];
+        state.connections = [
+          { id: 'c1', from: 'Start', to: 'Check', label: '', style: 'solid' },
+          { id: 'c2', from: 'Check', to: 'Success', label: 'Valid', style: 'solid' },
+          { id: 'c3', from: 'Check', to: 'Error', label: 'Invalid', style: 'dotted' }
+        ];
+      }
+      render();
+      showToast('Loaded template');
+    });
+
+    document.getElementById('btnNew').addEventListener('click', () => {
+      state.nodes = [];
+      state.connections = [];
+      state.selectedNodeId = null;
+      state.selectedConnectionId = null;
+      render();
+      showToast('Canvas cleared');
+    });
+
+    document.getElementById('btnExportJSON').addEventListener('click', () => {
+      const jsonStr = JSON.stringify(state, null, 2);
+      const blob = new Blob([jsonStr], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'mermaid_flowchart.json';
+      a.click();
+    });
+
+    document.getElementById('btnImportJSON').addEventListener('click', () => {
+      document.getElementById('fileInput').click();
+    });
+
+    document.getElementById('fileInput').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+        try {
+          const loadedState = JSON.parse(evt.target.result);
+          state.nodes = loadedState.nodes || [];
+          state.connections = loadedState.connections || [];
+          state.direction = loadedState.direction || 'LR';
+          render();
+          showToast('Loaded JSON layout');
+        } catch(err) {
+          showToast('Invalid JSON file');
+        }
+      };
+      reader.readAsText(file);
+    });
+
+    document.getElementById('btnCopyMermaid').addEventListener('click', () => {
+      navigator.clipboard.writeText(mermaidCodeEditor.value);
+      showToast('Mermaid code copied to clipboard!');
+    });
+
+    document.getElementById('btnExportSVG').addEventListener('click', () => {
+      const svgData = canvasSvg.outerHTML;
+      const blob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'flowchart.svg';
+      a.click();
+      showToast('Exported SVG file');
+    });
+
+    document.getElementById('tabCode').addEventListener('click', () => {
+      document.getElementById('tabCode').classList.add('active');
+      document.getElementById('tabPreview').classList.remove('active');
+      document.getElementById('codeView').style.display = 'flex';
+      document.getElementById('previewView').style.display = 'none';
+    });
+
+    document.getElementById('tabPreview').addEventListener('click', () => {
+      document.getElementById('tabPreview').classList.add('active');
+      document.getElementById('tabCode').classList.remove('active');
+      document.getElementById('codeView').style.display = 'none';
+      document.getElementById('previewView').style.display = 'flex';
+      renderLiveMermaidSVG(mermaidCodeEditor.value);
+    });
+
+    // --- Live Code Sync & Input Listeners ---
+    let codeDebounceTimer = null;
+
+    mermaidCodeEditor.addEventListener('input', () => {
+      isEditingCode = true;
+      clearTimeout(codeDebounceTimer);
+      codeDebounceTimer = setTimeout(() => {
+        parseMermaidCodeToCanvas(mermaidCodeEditor.value);
+        isEditingCode = false;
+      }, 300);
+    });
+
+    document.getElementById('btnSyncCode').addEventListener('click', () => {
+      isEditingCode = true;
+      parseMermaidCodeToCanvas(mermaidCodeEditor.value);
+      isEditingCode = false;
+      showToast('Canvas & SVG updated from Mermaid code!');
+    });
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      toast.innerText = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2500);
+    }
+
+    render();
+  </script>
+</body>
+</html>

@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="id" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Utility Hub & Toolkit | Corneliox</title>
+  
+  <!-- Tailwind CSS & Google Fonts -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              400: '#818cf8',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+              900: '#1e1b4b',
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            mono: ['Fira Code', 'monospace']
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: rgba(30, 41, 59, 0.5);
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: rgba(99, 102, 241, 0.4);
+      border-radius: 9999px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: rgba(99, 102, 241, 0.8);
+    }
+    .glass-panel {
+      background: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .glow-hover:hover {
+      box-shadow: 0 0 25px -5px rgba(99, 102, 241, 0.35);
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col custom-scrollbar selection:bg-indigo-500 selection:text-white">
+
+  <!-- Background Decorative Ambient Glows -->
+  <div class="fixed inset-0 overflow-hidden pointer-events-none z-0">
+    <div class="absolute -top-40 -left-40 w-96 h-96 bg-indigo-600/20 rounded-full blur-3xl"></div>
+    <div class="absolute top-1/3 -right-40 w-96 h-96 bg-purple-600/15 rounded-full blur-3xl"></div>
+    <div class="absolute -bottom-20 left-1/3 w-96 h-96 bg-cyan-600/15 rounded-full blur-3xl"></div>
+  </div>
+
+  <!-- Main Header -->
+  <header class="sticky top-0 z-40 glass-panel border-b border-slate-800/80">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-cyan-400 p-0.5 shadow-lg shadow-indigo-500/20 flex items-center justify-center">
+          <div class="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center">
+            <i data-lucide="wrench" class="w-5 h-5 text-indigo-400"></i>
+          </div>
+        </div>
+        <div>
+          <span class="font-bold text-lg tracking-tight bg-gradient-to-r from-white via-slate-200 to-indigo-300 bg-clip-text text-transparent">Utility Hub</span>
+          <span class="text-[11px] text-slate-400 ml-1.5 px-2 py-0.5 rounded-full bg-slate-800/80 border border-slate-700">Auto-Catalog CI/CD</span>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <a href="https://github.com/Corneliox/Utility" target="_blank" rel="noopener noreferrer" 
+           class="flex items-center gap-2 text-xs sm:text-sm font-medium px-3.5 py-2 rounded-lg bg-slate-900/90 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-700/80 transition shadow-sm">
+          <i data-lucide="github" class="w-4 h-4"></i>
+          <span class="hidden sm:inline">GitHub Repository</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <main class="flex-grow z-10">
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-8">
+      <div class="text-center max-w-3xl mx-auto space-y-4">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-xs font-semibold uppercase tracking-wider">
+          <i data-lucide="sparkles" class="w-3.5 h-3.5"></i> Automated Web Tools & AI Dataset Pipelines
+        </div>
+        <h1 class="text-3xl sm:text-5xl font-extrabold tracking-tight text-white leading-tight">
+          Pusat Utilitas Digital & <span class="bg-gradient-to-r from-indigo-400 via-cyan-400 to-purple-400 bg-clip-text text-transparent">Dataset Pipeline</span>
+        </h1>
+        <p class="text-slate-400 text-sm sm:text-base leading-relaxed">
+          Koleksi perkakas interaktif siap pakai berbasis web serta skrip automasi Python untuk kurasi dataset gambar, teks terjemahan, diagram visual, dan kalibrasi presisi.
+        </p>
+
+        <!-- Search and Filter Control -->
+        <div class="pt-4 flex flex-col sm:flex-row items-center gap-3 max-w-2xl mx-auto">
+          <div class="relative w-full">
+            <i data-lucide="search" class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+            <input type="text" id="searchInput" placeholder="Cari utilitas (e.g. mermaid, qr, upscaler, crop, validator)..." 
+                   class="w-full bg-slate-900/90 border border-slate-700/80 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 rounded-xl pl-10 pr-4 py-2.5 text-sm text-slate-200 placeholder-slate-500 outline-none transition">
+          </div>
+        </div>
+
+        <!-- Filter Badges -->
+        <div class="flex flex-wrap items-center justify-center gap-2 pt-2" id="filterContainer">
+          <button data-filter="all" class="filter-btn active px-3.5 py-1.5 rounded-lg text-xs font-medium bg-indigo-600 text-white shadow-md shadow-indigo-600/30 transition">
+            Semua Perkakas (<span id="count-all">...</span>)
+          </button>
+          <button data-filter="web" class="filter-btn px-3.5 py-1.5 rounded-lg text-xs font-medium bg-slate-900 text-slate-300 hover:bg-slate-800 border border-slate-800 transition">
+            🌐 Web Interactive (<span id="count-web">...</span>)
+          </button>
+          <button data-filter="python" class="filter-btn px-3.5 py-1.5 rounded-lg text-xs font-medium bg-slate-900 text-slate-300 hover:bg-slate-800 border border-slate-800 transition">
+            🐍 Python Pipelines (<span id="count-py">...</span>)
+          </button>
+          <button data-filter="image" class="filter-btn px-3.5 py-1.5 rounded-lg text-xs font-medium bg-slate-900 text-slate-300 hover:bg-slate-800 border border-slate-800 transition">
+            🖼️ Gambar & Visual
+          </button>
+          <button data-filter="dataset" class="filter-btn px-3.5 py-1.5 rounded-lg text-xs font-medium bg-slate-900 text-slate-300 hover:bg-slate-800 border border-slate-800 transition">
+            🧠 AI & Dataset
+          </button>
+          <button data-filter="measure" class="filter-btn px-3.5 py-1.5 rounded-lg text-xs font-medium bg-slate-900 text-slate-300 hover:bg-slate-800 border border-slate-800 transition">
+            📏 Pengukuran
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Main Grid Section -->
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+      
+      <!-- Section 1: Web Interactive Utilities -->
+      <div class="mb-12" id="web-section">
+        <div class="flex items-center gap-3 mb-6">
+          <div class="p-2 rounded-lg bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+            <i data-lucide="globe" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h2 class="text-xl font-bold text-white tracking-tight">Interactive Web Apps</h2>
+            <p class="text-xs text-slate-400">Dapat dijalankan langsung di browser tanpa instalasi apapun.</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="webAppsGrid">
+          <!-- Dynamic Content Loaded from tools.json -->
+        </div>
+      </div>
+
+      <!-- Section 2: Python AI Dataset Automation Pipelines -->
+      <div id="python-section">
+        <div class="flex items-center gap-3 mb-6">
+          <div class="p-2 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/20">
+            <i data-lucide="terminal" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h2 class="text-xl font-bold text-white tracking-tight">Python AI Dataset & Automation Scripts</h2>
+            <p class="text-xs text-slate-400">Skrip desktop bertenaga tinggi untuk pemrosesan batch file di sistem lokal.</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="pythonScriptsGrid">
+          <!-- Dynamic Content Loaded from tools.json -->
+        </div>
+      </div>
+
+      <!-- Empty Search State -->
+      <div id="emptyState" class="hidden text-center py-16">
+        <div class="w-16 h-16 rounded-2xl bg-slate-900 border border-slate-800 text-slate-500 mx-auto flex items-center justify-center mb-4">
+          <i data-lucide="search-x" class="w-8 h-8"></i>
+        </div>
+        <h3 class="text-lg font-bold text-slate-300">Tidak ada utilitas yang cocok</h3>
+        <p class="text-xs text-slate-500 mt-1">Coba gunakan kata kunci pencarian atau kategori lain.</p>
+      </div>
+
+    </section>
+  </main>
+
+  <!-- Interactive App Runner Modal (In-Page Iframe) -->
+  <div id="appModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden flex-col items-center justify-center p-2 sm:p-4 transition-opacity">
+    <div class="w-full max-w-6xl h-[92vh] bg-slate-900 border border-slate-700/80 rounded-2xl shadow-2xl flex flex-col overflow-hidden">
+      
+      <!-- Modal Header -->
+      <div class="px-4 py-3 bg-slate-900 border-b border-slate-800 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-3 h-3 rounded-full bg-rose-500"></div>
+          <div class="w-3 h-3 rounded-full bg-amber-500"></div>
+          <div class="w-3 h-3 rounded-full bg-emerald-500"></div>
+          <span id="modalAppTitle" class="font-semibold text-sm text-slate-200 ml-2">App Viewer</span>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button onclick="reloadModalFrame()" class="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition" title="Muat Ulang">
+            <i data-lucide="rotate-cw" class="w-4 h-4"></i>
+          </button>
+          <a id="modalExternalLink" href="#" target="_blank" class="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition" title="Buka di Tab Baru">
+            <i data-lucide="external-link" class="w-4 h-4"></i>
+          </a>
+          <button onclick="closeAppModal()" class="p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 hover:text-rose-300 border border-rose-500/20 transition" title="Tutup (ESC)">
+            <i data-lucide="x" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Modal Iframe Container -->
+      <div class="flex-1 bg-slate-950 relative">
+        <iframe id="modalIframe" src="about:blank" class="w-full h-full border-0"></iframe>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="fixed bottom-6 right-6 z-50 transform translate-y-20 opacity-0 transition-all duration-300 bg-slate-900 border border-indigo-500/40 shadow-xl rounded-xl px-4 py-2.5 flex items-center gap-2 text-xs text-white">
+    <i data-lucide="check" class="w-4 h-4 text-emerald-400"></i>
+    <span id="toastMsg">Perintah disalin ke clipboard!</span>
+  </div>
+
+  <!-- Footer -->
+  <footer class="border-t border-slate-800/80 bg-slate-950/80 py-8 text-center text-xs text-slate-500 z-10">
+    <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div class="flex items-center gap-2">
+        <span class="font-semibold text-slate-400">Corneliox / Utility</span> &bull; Auto-updating via GitHub Actions
+      </div>
+      <div>
+        Dibuat untuk automasi alur kerja, pengolahan dataset AI, dan perkakas web mandiri.
+      </div>
+    </div>
+  </footer>
+
+  <!-- Dynamic Catalog Loader & Interactive Logic -->
+  <script>
+    let allTools = [];
+    let currentFilter = 'all';
+
+    // Toast Trigger
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      const toastMsg = document.getElementById('toastMsg');
+      toastMsg.textContent = msg;
+      toast.classList.remove('translate-y-20', 'opacity-0');
+      setTimeout(() => {
+        toast.classList.add('translate-y-20', 'opacity-0');
+      }, 2500);
+    }
+
+    function copyToClipboard(text) {
+      navigator.clipboard.writeText(text).then(() => {
+        showToast('Perintah disalin: ' + text);
+      }).catch(err => {
+        showToast('Gagal menyalin perintah');
+      });
+    }
+
+    // Modal Launcher
+    function launchApp(url, title) {
+      const modal = document.getElementById('appModal');
+      const iframe = document.getElementById('modalIframe');
+      const titleEl = document.getElementById('modalAppTitle');
+      const extLink = document.getElementById('modalExternalLink');
+
+      titleEl.textContent = title;
+      extLink.href = url;
+      iframe.src = url;
+
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeAppModal() {
+      const modal = document.getElementById('appModal');
+      const iframe = document.getElementById('modalIframe');
+      
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+      iframe.src = 'about:blank';
+      document.body.style.overflow = 'auto';
+    }
+
+    function reloadModalFrame() {
+      const iframe = document.getElementById('modalIframe');
+      iframe.src = iframe.src;
+    }
+
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeAppModal();
+    });
+
+    // Render Web Card HTML
+    function createWebCard(tool) {
+      const iconName = tool.icon || 'globe';
+      const tags = (tool.tags || []).join(' ');
+      return `
+        <div class="tool-card group glass-panel rounded-2xl p-6 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 glow-hover"
+             data-type="web" data-tags="${tags} ${tool.category} ${tool.title}">
+          <div>
+            <div class="flex items-start justify-between gap-4 mb-4">
+              <div class="w-12 h-12 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <i data-lucide="${iconName}" class="w-6 h-6"></i>
+              </div>
+              <span class="text-[11px] font-semibold px-2.5 py-1 rounded-full bg-indigo-500/10 text-indigo-300 border border-indigo-500/20">
+                ${tool.category || 'Web App'}
+              </span>
+            </div>
+            <h3 class="text-lg font-bold text-white group-hover:text-indigo-400 transition-colors">${tool.title}</h3>
+            <p class="text-xs text-slate-400 mt-2 leading-relaxed">
+              ${tool.desc}
+            </p>
+          </div>
+          <div class="mt-6 pt-4 border-t border-slate-800/80 flex items-center gap-2">
+            <button onclick="launchApp('${tool.url}', '${tool.title}')" 
+                    class="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold transition shadow-md shadow-indigo-600/20">
+              <i data-lucide="play" class="w-3.5 h-3.5"></i> Jalankan di Sini
+            </button>
+            <a href="${tool.url}" target="_blank" 
+               class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 transition" title="Buka di tab baru">
+              <i data-lucide="external-link" class="w-4 h-4"></i>
+            </a>
+          </div>
+        </div>
+      `;
+    }
+
+    // Render Python Card HTML
+    function createPythonCard(tool) {
+      const iconName = tool.icon || 'terminal';
+      const tags = (tool.tags || []).join(' ');
+      const command = tool.command || `python ${tool.filename}`;
+      const deps = tool.deps && tool.deps !== '-' ? tool.deps : null;
+
+      return `
+        <div class="tool-card glass-panel rounded-2xl p-6 flex flex-col justify-between transition-all duration-300 hover:border-slate-700"
+             data-type="python" data-tags="${tags} ${tool.category} ${tool.title}">
+          <div>
+            <div class="flex items-center justify-between gap-2 mb-3">
+              <span class="text-xs font-mono text-amber-400 bg-amber-400/10 px-2.5 py-1 rounded-md border border-amber-400/20">
+                ${tool.filename}
+              </span>
+              <span class="text-[11px] text-slate-400">${tool.category || 'Python Script'}</span>
+            </div>
+            <h3 class="text-base font-bold text-white">${tool.title}</h3>
+            <p class="text-xs text-slate-400 mt-2 leading-relaxed">
+              ${tool.desc}
+            </p>
+            <div class="mt-4 p-3 rounded-lg bg-slate-900/90 border border-slate-800 flex items-center justify-between gap-2">
+              <div class="text-[11px] font-mono text-indigo-300 truncate">
+                <code>${command}</code>
+              </div>
+              <button onclick="copyToClipboard('${command}')" class="p-1.5 rounded-md hover:bg-slate-800 text-slate-400 hover:text-slate-200 transition" title="Salin perintah">
+                <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+              </button>
+            </div>
+          </div>
+          <div class="mt-4 pt-3 border-t border-slate-800/60 flex items-center justify-between text-xs text-slate-500">
+            <div class="flex items-center gap-1.5">
+              <i data-lucide="cpu" class="w-3.5 h-3.5 text-emerald-400"></i>
+              <span>Deps: ${deps ? deps : 'Standard Library'}</span>
+            </div>
+            <a href="https://github.com/Corneliox/Utility/blob/main/${tool.filename}" target="_blank" class="hover:text-indigo-400 flex items-center gap-1">
+              Source <i data-lucide="code" class="w-3 h-3"></i>
+            </a>
+          </div>
+        </div>
+      `;
+    }
+
+    // Filter & Search Logic
+    function applyFilterAndSearch() {
+      const searchInput = document.getElementById('searchInput');
+      const query = searchInput.value.toLowerCase().trim();
+      const toolCards = document.querySelectorAll('.tool-card');
+      const webSection = document.getElementById('web-section');
+      const pySection = document.getElementById('python-section');
+      const emptyState = document.getElementById('emptyState');
+
+      let visibleWeb = 0;
+      let visiblePy = 0;
+
+      toolCards.forEach(card => {
+        const type = card.getAttribute('data-type');
+        const tags = (card.getAttribute('data-tags') || '').toLowerCase();
+        const textContent = card.innerText.toLowerCase();
+
+        const matchesSearch = query === '' || tags.includes(query) || textContent.includes(query);
+        let matchesFilter = false;
+
+        if (currentFilter === 'all') {
+          matchesFilter = true;
+        } else if (currentFilter === 'web' && type === 'web') {
+          matchesFilter = true;
+        } else if (currentFilter === 'python' && type === 'python') {
+          matchesFilter = true;
+        } else if (currentFilter === 'image' && tags.includes('image')) {
+          matchesFilter = true;
+        } else if (currentFilter === 'dataset' && (tags.includes('dataset') || tags.includes('lora') || tags.includes('ai'))) {
+          matchesFilter = true;
+        } else if (currentFilter === 'measure' && (tags.includes('measure') || tags.includes('px2mm') || tags.includes('scale'))) {
+          matchesFilter = true;
+        }
+
+        if (matchesSearch && matchesFilter) {
+          card.classList.remove('hidden');
+          if (type === 'web') visibleWeb++;
+          if (type === 'python') visiblePy++;
+        } else {
+          card.classList.add('hidden');
+        }
+      });
+
+      webSection.style.display = visibleWeb > 0 ? 'block' : 'none';
+      pySection.style.display = visiblePy > 0 ? 'block' : 'none';
+      emptyState.style.display = (visibleWeb === 0 && visiblePy === 0) ? 'block' : 'none';
+    }
+
+    // Load Data from tools.json
+    async function loadCatalog() {
+      try {
+        const res = await fetch('./tools.json');
+        if (!res.ok) throw new Error('Network error loading tools.json');
+        const data = await res.json();
+        renderTools(data);
+      } catch (err) {
+        console.warn('Could not fetch tools.json dynamically, fallback mode active:', err);
+      }
+    }
+
+    function renderTools(data) {
+      allTools = data.tools || [];
+      const webGrid = document.getElementById('webAppsGrid');
+      const pyGrid = document.getElementById('pythonScriptsGrid');
+
+      // Update counters
+      document.getElementById('count-all').textContent = data.total_tools || allTools.length;
+      document.getElementById('count-web').textContent = data.web_count || allTools.filter(t => t.type === 'web').length;
+      document.getElementById('count-py').textContent = data.python_count || allTools.filter(t => t.type === 'python').length;
+
+      // Render cards
+      webGrid.innerHTML = allTools.filter(t => t.type === 'web').map(createWebCard).join('');
+      pyGrid.innerHTML = allTools.filter(t => t.type === 'python').map(createPythonCard).join('');
+
+      // Refresh icons
+      lucide.createIcons();
+
+      // Bind events
+      setupEvents();
+    }
+
+    function setupEvents() {
+      const searchInput = document.getElementById('searchInput');
+      const filterButtons = document.querySelectorAll('.filter-btn');
+
+      searchInput.addEventListener('input', applyFilterAndSearch);
+
+      filterButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+          filterButtons.forEach(b => {
+            b.classList.remove('bg-indigo-600', 'text-white', 'shadow-md', 'shadow-indigo-600/30');
+            b.classList.add('bg-slate-900', 'text-slate-300');
+          });
+
+          btn.classList.remove('bg-slate-900', 'text-slate-300');
+          btn.classList.add('bg-indigo-600', 'text-white', 'shadow-md', 'shadow-indigo-600/30');
+
+          currentFilter = btn.getAttribute('data-filter');
+          applyFilterAndSearch();
+        });
+      });
+    }
+
+    // Initialize
+    loadCatalog();
+  </script>
+</body>
+</html>
