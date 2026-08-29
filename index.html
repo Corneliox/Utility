@@ -13,17 +13,17 @@
       theme: {
         extend: {
           colors: {
-            coral: {
-              50: '#fff5f3',
-              100: '#ffe8e4',
-              200: '#ffd5cc',
-              300: '#ffb5a6',
-              400: '#ff856e',
-              500: '#ff5742',
-              600: '#eb3e28',
-              700: '#c52e1b',
-              800: '#a3291a',
-              900: '#86271b',
+            coralblue: {
+              50: '#f0f9ff',
+              100: '#e0f2fe',
+              200: '#bae6fd',
+              300: '#7dd3fc',
+              400: '#38bdf8',
+              500: '#0ea5e9',
+              600: '#0284c7',
+              700: '#0369a1',
+              800: '#075985',
+              900: '#0c4a6e',
             }
           },
           fontFamily: {
@@ -45,11 +45,11 @@
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
 
   <style>
-    /* CSS Variables for Dynamic Dark & Coral Themes */
+    /* CSS Variables for Dark Theme & Coral Blue Theme */
     :root[data-theme="dark"] {
       --bg-main: #060913;
       --bg-panel: rgba(15, 23, 42, 0.75);
-      --bg-card: rgba(17, 24, 39, 0.7);
+      --bg-card: rgba(17, 24, 39, 0.72);
       --border-subtle: rgba(255, 255, 255, 0.08);
       --border-active: #6366f1;
       --text-primary: #f8fafc;
@@ -62,30 +62,36 @@
       --hero-grad-mid: #38bdf8;
       --hero-grad-end: #c084fc;
       --card-hover-shadow: rgba(99, 102, 241, 0.25);
-      --particle-color: rgba(99, 102, 241, 0.4);
+      --particle-color: rgba(99, 102, 241, 0.45);
       --particle-line: rgba(56, 189, 248, 0.12);
       --code-bg: rgba(15, 23, 42, 0.95);
+      --orb-1: rgba(99, 102, 241, 0.25);
+      --orb-2: rgba(6, 182, 212, 0.20);
+      --orb-3: rgba(168, 85, 247, 0.20);
     }
 
     :root[data-theme="coral-light"] {
-      --bg-main: #fff8f5;
+      --bg-main: #f0f7fb;
       --bg-panel: rgba(255, 255, 255, 0.85);
       --bg-card: rgba(255, 255, 255, 0.92);
-      --border-subtle: rgba(255, 87, 66, 0.16);
-      --border-active: #ff5742;
-      --text-primary: #2b1714;
-      --text-secondary: #6e4741;
-      --text-muted: #a3756d;
-      --accent: #ff5742;
-      --accent-hover: #e5422e;
-      --accent-glow: rgba(255, 87, 66, 0.25);
-      --hero-grad-start: #ff4730;
-      --hero-grad-mid: #ff7654;
-      --hero-grad-end: #ff9d42;
-      --card-hover-shadow: rgba(255, 87, 66, 0.22);
-      --particle-color: rgba(255, 87, 66, 0.45);
-      --particle-line: rgba(255, 120, 90, 0.16);
-      --code-bg: #fff0eb;
+      --border-subtle: rgba(14, 165, 233, 0.18);
+      --border-active: #0284c7;
+      --text-primary: #0c2333;
+      --text-secondary: #33556d;
+      --text-muted: #60869e;
+      --accent: #0284c7;
+      --accent-hover: #0369a1;
+      --accent-glow: rgba(14, 165, 233, 0.25);
+      --hero-grad-start: #0284c7;
+      --hero-grad-mid: #06b6d4;
+      --hero-grad-end: #38bdf8;
+      --card-hover-shadow: rgba(14, 165, 233, 0.22);
+      --particle-color: rgba(14, 165, 233, 0.5);
+      --particle-line: rgba(6, 182, 212, 0.14);
+      --code-bg: #e0f2fe;
+      --orb-1: rgba(14, 165, 233, 0.25);
+      --orb-2: rgba(6, 182, 212, 0.25);
+      --orb-3: rgba(56, 189, 248, 0.22);
     }
 
     body {
@@ -142,7 +148,7 @@
       position: absolute;
       border-radius: 50%;
       filter: blur(80px);
-      opacity: 0.28;
+      opacity: 0.35;
       pointer-events: none;
       animation: floatOrb 12s infinite alternate ease-in-out;
     }
@@ -174,16 +180,16 @@
     }
   </style>
 </head>
-<body class="min-h-screen flex flex-col custom-scrollbar selection:bg-rose-500 selection:text-white relative overflow-x-hidden">
+<body class="min-h-screen flex flex-col custom-scrollbar selection:bg-cyan-500 selection:text-white relative overflow-x-hidden">
 
   <!-- Interactive Canvas Particle Background -->
   <canvas id="particleCanvas" class="fixed inset-0 pointer-events-none z-0"></canvas>
 
   <!-- Ambient Glow Orbs -->
   <div class="fixed inset-0 overflow-hidden pointer-events-none z-0">
-    <div class="glow-orb w-96 h-96 -top-32 -left-32 bg-indigo-600 dark:bg-indigo-600/30" id="orb1" style="background-color: var(--accent);"></div>
-    <div class="glow-orb w-96 h-96 top-1/3 -right-32 bg-cyan-500 dark:bg-cyan-500/20" id="orb2"></div>
-    <div class="glow-orb w-[30rem] h-[30rem] -bottom-20 left-1/3 bg-purple-600 dark:bg-purple-600/20" id="orb3"></div>
+    <div class="glow-orb w-96 h-96 -top-32 -left-32" id="orb1" style="background-color: var(--orb-1);"></div>
+    <div class="glow-orb w-96 h-96 top-1/3 -right-32" id="orb2" style="background-color: var(--orb-2);"></div>
+    <div class="glow-orb w-[30rem] h-[30rem] -bottom-20 left-1/3" id="orb3" style="background-color: var(--orb-3);"></div>
   </div>
 
   <!-- Main Navigation Header -->
@@ -201,7 +207,7 @@
         <div>
           <span class="font-extrabold text-lg tracking-tight bg-clip-text" style="color: var(--text-primary);">Utility Hub</span>
           <span class="text-[10px] font-semibold ml-1.5 px-2 py-0.5 rounded-full border"
-                style="background: var(--code-bg); color: var(--accent); border-color: var(--border-subtle);">v2.2</span>
+                style="background: var(--code-bg); color: var(--accent); border-color: var(--border-subtle);">v2.3</span>
         </div>
       </div>
 
@@ -211,7 +217,7 @@
         <!-- Language Selector Dropdown -->
         <div class="relative">
           <select id="langSelect" onchange="changeLanguage(this.value)" 
-                  class="appearance-none font-medium text-xs px-3 py-1.5 pr-7 rounded-lg glass-panel cursor-pointer outline-none transition hover:border-indigo-400"
+                  class="appearance-none font-medium text-xs px-3 py-1.5 pr-7 rounded-lg glass-panel cursor-pointer outline-none transition hover:border-cyan-400"
                   style="color: var(--text-primary); border-color: var(--border-subtle);">
             <option value="en">🇺🇸 EN (English)</option>
             <option value="id">🇮🇩 ID (Indonesia)</option>
@@ -220,19 +226,23 @@
           <i data-lucide="globe" class="w-3.5 h-3.5 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none opacity-60"></i>
         </div>
 
-        <!-- Theme Toggle Button -->
+        <!-- Theme Toggle Button (Dark vs Coral Blue) -->
         <button id="themeToggleBtn" onclick="toggleTheme()" 
                 class="p-2 rounded-lg glass-panel transition-transform hover:scale-110 active:rotate-45"
                 style="color: var(--text-primary); border-color: var(--border-subtle);"
-                title="Ganti Tema / Toggle Theme">
+                title="Toggle Theme (Dark / Coral Blue)">
           <i data-lucide="sun" id="themeIcon" class="w-4 h-4"></i>
         </button>
 
-        <!-- GitHub Repo Link -->
+        <!-- GitHub Repo Link with Guaranteed Crisp Inline SVG -->
         <a href="https://github.com/Corneliox/Utility" target="_blank" rel="noopener noreferrer" 
-           class="flex items-center gap-1.5 text-xs font-semibold px-3.5 py-1.5 rounded-lg glass-panel transition shadow-sm hover:scale-105"
-           style="color: var(--text-primary); border-color: var(--border-subtle);">
-          <i data-lucide="github" class="w-4 h-4"></i>
+           class="flex items-center gap-2 text-xs font-semibold px-3.5 py-1.5 rounded-lg glass-panel transition shadow-sm hover:scale-105"
+           style="color: var(--text-primary); border-color: var(--border-subtle);"
+           title="View on GitHub">
+          <!-- Standard GitHub SVG Logo -->
+          <svg class="w-4 h-4 fill-current shrink-0" viewBox="0 0 24 24">
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/>
+          </svg>
           <span class="hidden sm:inline">GitHub</span>
         </a>
       </div>
@@ -265,9 +275,9 @@
         <!-- Search Box with Live Glow -->
         <div class="pt-4 flex flex-col sm:flex-row items-center gap-3 max-w-2xl mx-auto">
           <div class="relative w-full group">
-            <i data-lucide="search" class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 transition-colors group-focus-within:text-rose-500" style="color: var(--text-muted);"></i>
+            <i data-lucide="search" class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 transition-colors group-focus-within:text-cyan-500" style="color: var(--text-muted);"></i>
             <input type="text" id="searchInput" placeholder="Search utilities (e.g. mermaid, qr, upscaler, crop, validator)..." 
-                   class="w-full glass-panel rounded-xl pl-10 pr-10 py-3 text-sm outline-none transition-all focus:ring-2 focus:ring-rose-400"
+                   class="w-full glass-panel rounded-xl pl-10 pr-10 py-3 text-sm outline-none transition-all focus:ring-2 focus:ring-cyan-400"
                    style="color: var(--text-primary); border-color: var(--border-subtle);">
             <button id="clearSearch" onclick="clearSearchInput()" class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-xs p-1 rounded hover:bg-slate-800/40">
               <i data-lucide="x" class="w-3.5 h-3.5"></i>
@@ -394,6 +404,10 @@
   <footer class="border-t py-8 text-center text-xs z-10 glass-panel" style="border-color: var(--border-subtle); color: var(--text-muted);">
     <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
       <div class="flex items-center gap-2 font-semibold" style="color: var(--text-secondary);">
+        <!-- Standard GitHub SVG in Footer -->
+        <svg class="w-4 h-4 fill-current inline-block" viewBox="0 0 24 24">
+          <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/>
+        </svg>
         <span>Corneliox / Utility</span> &bull; <span>Open Source Toolkit</span>
       </div>
       <div id="footerText">
@@ -576,7 +590,7 @@
     let currentFilter = 'all';
     let allTools = [];
 
-    // --- 2. Theme Handling ---
+    // --- 2. Theme Handling (Dark vs Coral Blue) ---
     function applyTheme(theme) {
       currentTheme = theme;
       document.documentElement.setAttribute('data-theme', theme);
@@ -664,7 +678,7 @@
       setTimeout(typeEffect, speed);
     }
 
-    // --- 5. Interactive Particle Canvas ---
+    // --- 5. Interactive Particle Canvas (Cyan / Azure Mesh) ---
     function initParticles() {
       const canvas = document.getElementById('particleCanvas');
       const ctx = canvas.getContext('2d');
@@ -696,8 +710,8 @@
 
       function draw() {
         ctx.clearRect(0, 0, width, height);
-        const pColor = currentTheme === 'dark' ? 'rgba(99, 102, 241, 0.45)' : 'rgba(255, 87, 66, 0.55)';
-        const lColor = currentTheme === 'dark' ? 'rgba(56, 189, 248, 0.08)' : 'rgba(255, 120, 90, 0.12)';
+        const pColor = currentTheme === 'dark' ? 'rgba(99, 102, 241, 0.45)' : 'rgba(14, 165, 233, 0.55)';
+        const lColor = currentTheme === 'dark' ? 'rgba(56, 189, 248, 0.08)' : 'rgba(6, 182, 212, 0.14)';
 
         particles.forEach((p, idx) => {
           p.x += p.vx;
